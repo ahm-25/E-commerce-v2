@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-background: #FAF9F6; /* Warm off-white */
+    --color-surface: #FFFFFF;
+    --color-border: #E5E5E5;
+    --color-primary: #1A1A1A; /* Near black */
+    --color-primary-hover: #333333;
+    --color-text-primary: #1A1A1A;
+    --color-text-secondary: #666666;
+    --color-accent: #2563EB; /* Restrained blue */
+    --color-accent-hover: #1D4ED8;
+  }
+
+  .dark {
+    --color-background: #121212; /* Deep charcoal */
+    --color-surface: #1E1E1E;
+    --color-border: #333333;
+    --color-primary: #FFFFFF;
+    --color-primary-hover: #E5E5E5;
+    --color-text-primary: #F3F4F6; /* Warm white */
+    --color-text-secondary: #9CA3AF;
+    --color-accent: #3B82F6;
+    --color-accent-hover: #60A5FA;
+  }
+
+  body {
+    @apply bg-background text-text-primary antialiased;
+  }
+}
+
+@layer utilities {
+  .rtl-flip {
+    transform: scaleX(-1);
+  }
+}
