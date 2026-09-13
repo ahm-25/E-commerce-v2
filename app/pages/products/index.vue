@@ -3,8 +3,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { watch, onMounted } from 'vue'
 import { useProductFiltersStore } from '~/stores/productFilters'
 import { useProducts } from '~/composables/useProducts'
-import StoreHeader from '~/components/storefront/StoreHeader.vue'
-import StoreFooter from '~/components/storefront/StoreFooter.vue'
 import Breadcrumbs from '~/components/storefront/Breadcrumbs.vue'
 import CategoryHero from '~/components/storefront/CategoryHero.vue'
 import ProductFilters from '~/components/storefront/ProductFilters.vue'
@@ -62,8 +60,6 @@ const promoBannerData = {
 
 <template>
   <div class="min-h-screen flex flex-col bg-background text-text-primary">
-    <StoreHeader />
-
     <main class="flex-grow">
       <div class="container mx-auto px-4 md:px-6 py-6 max-w-7xl">
         <Breadcrumbs :items="breadcrumbItems" />
@@ -104,7 +100,5 @@ const promoBannerData = {
         <PromotionalBanner :banner="promoBannerData" />
       </div>
     </main>
-
-    <StoreFooter />
   </div>
 </template>

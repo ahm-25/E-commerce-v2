@@ -13,16 +13,16 @@ defineProps<{
 <template>
   <div 
     v-if="isLoading" 
-    class="grid gap-6"
-    :class="viewMode === 'grid' ? 'grid-cols-2 md:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'"
+    class="grid gap-6 md:gap-8"
+    :class="viewMode === 'grid' ? 'grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'"
   >
     <ProductCardSkeleton v-for="i in 8" :key="i" :view-mode="viewMode" />
   </div>
   
   <div 
     v-else 
-    class="grid gap-6"
-    :class="viewMode === 'grid' ? 'grid-cols-2 md:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'"
+    class="grid gap-6 md:gap-8"
+    :class="viewMode === 'grid' ? 'grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'"
   >
     <ProductCard 
       v-for="product in products" 
