@@ -2,9 +2,11 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { Search, ShoppingCart, Heart, User, Sun, Moon, Menu, X } from 'lucide-vue-next'
 import { useShopStore } from '~/stores/useStore'
+import { useCart } from '~/composables/useCart'
 
 const colorMode = useColorMode()
 const shopStore = useShopStore()
+const { cartCount } = useCart()
 
 const toggleTheme = () => {
   colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
@@ -78,12 +80,12 @@ onUnmounted(() => {
             <button class="hidden sm:block p-2 hover:bg-background rounded-full transition-colors" aria-label="Wishlist">
               <Heart class="w-5 h-5 text-text-secondary hover:text-primary" />
             </button>
-            <button class="relative p-2 hover:bg-background rounded-full transition-colors" aria-label="Cart">
-              <ShoppingCart class="w-5 h-5 text-text-secondary hover:text-primary" />
-              <span v-if="shopStore.cartItemCount > 0" class="absolute top-0 right-0 w-4 h-4 bg-primary text-surface text-[10px] font-bold flex items-center justify-center rounded-full">
-                {{ shopStore.cartItemCount }}
+            <NuxtLink to="/cart" class="relative p-2 hover:bg-background rounded-full transition-colors flex items-center justify-center" aria-label="سلة التسوق">
+              <ShoppingCart class="w-5 h-5 text-text-secondary hover:text-primary transition-colors" />
+              <span v-if="cartCount > 0" class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-primary text-white text-[10px] font-bold flex items-center justify-center rounded-full shadow-sm">
+                {{ cartCount }}
               </span>
-            </button>
+            </NuxtLink>
             
             <!-- Mobile Menu Toggle -->
             <button @click="shopStore.toggleMobileMenu" class="md:hidden p-2 hover:bg-background rounded-full transition-colors" aria-label="Menu">
@@ -112,6 +114,10 @@ onUnmounted(() => {
           <NuxtLink to="/products" class="py-2 text-sm font-medium border-b border-border">المنتجات</NuxtLink>
           <NuxtLink to="/categories" class="py-2 text-sm font-medium border-b border-border">الأقسام</NuxtLink>
           <NuxtLink to="/offers" class="py-2 text-sm font-medium border-b border-border">العروض</NuxtLink>
+          <NuxtLink to="/cart" class="py-2 text-sm font-medium border-b border-border flex items-center justify-between">
+            <span>سلة التسوق</span>
+            <span v-if="cartCount > 0" class="px-2 py-0.5 text-xs bg-primary text-white rounded-full font-bold">{{ cartCount }}</span>
+          </NuxtLink>
         </nav>
       </div>
     </div>

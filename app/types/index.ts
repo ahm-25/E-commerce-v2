@@ -136,3 +136,5 @@ export interface HomepageData {
   collections: Collection[]
   testimonials: Testimonial[]
 }
+
+export * from './cart'

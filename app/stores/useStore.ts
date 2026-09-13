@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { useCartStore } from '~/stores/cart'
 
 export interface CartItem {
   id: string // unique combination of product id and variant/options
@@ -49,6 +50,18 @@ export const useShopStore = defineStore('shop', () => {
         options
       })
     }
+
+    // Sync to main Cart Store
+    const cartStore = useCartStore()
+    cartStore.addItem({
+      id: cartItemId,
+      title: product.name || product.title,
+      price: product.price,
+      quantity,
+      image: product.images?.[0]?.url || product.image || '',
+      seller: { name: product.seller?.name || 'المتجر الرئيسي' },
+      attributes: options
+    })
   }
 
   const toggleMobileMenu = () => {
