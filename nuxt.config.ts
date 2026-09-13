@@ -12,7 +12,9 @@ export default defineNuxtConfig({
     '@nuxtjs/google-fonts'
   ],
   colorMode: {
-    classSuffix: '' // needed for tailwind dark mode
+    classSuffix: '', // needed for tailwind dark mode
+    preference: 'light', // default theme instead of following the OS
+    fallback: 'light'
   },
   googleFonts: {
     families: {
