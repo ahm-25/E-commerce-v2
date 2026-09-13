@@ -138,3 +138,4 @@ export interface HomepageData {
 }
 
 export * from './cart'
+export * from './checkout'
