@@ -1,9 +1,36 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { CheckCircle2, Package, ArrowRight, ShoppingBag } from 'lucide-vue-next'
+import { useOrderConfirmation } from '~/composables/useOrderConfirmation'
+import { ArrowRight, Download } from 'lucide-vue-next'
 
 const route = useRoute()
-const orderId = route.params.orderId
+const orderId = route.params.orderId as string
+
+const {
+  order,
+  timeline,
+  loading,
+  error,
+  isDownloading,
+  isCopied,
+  fetchOrder,
+  copyOrderNumber,
+  downloadInvoice
+} = useOrderConfirmation()
+
+const breadcrumbs = [
+  { label: 'الرئيسية', to: '/' },
+  { label: 'عربة التسوق', to: '/cart' },
+  { label: 'إتمام الشراء', to: '/checkout' },
+  { label: 'تأكيد الطلب', to: '#' }
+]
+
+onMounted(() => {
+  if (orderId) {
+    fetchOrder(orderId)
+  }
+})
 
 useHead({
   title: 'تم تأكيد الطلب | Nexora'
@@ -11,53 +38,84 @@ useHead({
 </script>
 
 <template>
-  <div class="min-h-screen bg-background flex flex-col">
-    <main class="flex-grow flex items-center justify-center p-6 pt-24 pb-20">
-      <div class="bg-surface border border-border/50 rounded-[2rem] p-8 md:p-12 shadow-sm max-w-2xl w-full text-center">
-        
-        <div class="w-24 h-24 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
-          <CheckCircle2 class="w-12 h-12" />
-        </div>
-        
-        <h1 class="text-3xl md:text-4xl font-black text-gray-900 mb-4">تم استلام طلبك بنجاح!</h1>
-        <p class="text-gray-500 text-lg mb-8 max-w-lg mx-auto">
-          شكراً لتسوقك معنا. تم تأكيد طلبك وجاري تجهيزه للشحن. سنقوم بإرسال تفاصيل الطلب والتتبع عبر البريد الإلكتروني قريباً.
-        </p>
+  <div class="bg-white dark:bg-background min-h-screen pb-12">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      
+      <!-- Loading State -->
+      <StorefrontOrderSuccessSkeleton v-if="loading" />
 
-        <div class="bg-gray-50 border border-gray-200 rounded-2xl p-6 mb-10 flex flex-col md:flex-row items-center justify-center gap-4 md:gap-12">
-          <div class="flex flex-col items-center gap-2">
-            <span class="text-sm text-gray-500 font-bold">رقم الطلب</span>
-            <span class="text-xl font-black text-gray-900 flex items-center gap-2">
-              <Package class="w-5 h-5 text-primary" />
-              {{ orderId }}
-            </span>
-          </div>
-          <div class="hidden md:block w-px h-12 bg-gray-300"></div>
-          <div class="flex flex-col items-center gap-2">
-            <span class="text-sm text-gray-500 font-bold">حالة الطلب</span>
-            <span class="px-3 py-1 bg-green-100 text-green-700 font-bold rounded-full text-sm">
-              قيد التجهيز
-            </span>
-          </div>
-        </div>
+      <!-- Error State -->
+      <StorefrontOrderSuccessError 
+        v-else-if="error || !order" 
+        :error="error || ''" 
+        @retry="fetchOrder(orderId)"
+      />
 
-        <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <NuxtLink 
-            to="/products"
-            class="w-full sm:w-auto px-8 py-4 bg-primary text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-primary-dark transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-1"
-          >
-            <ShoppingBag class="w-5 h-5" />
-            الاستمرار في التسوق
-          </NuxtLink>
-          <NuxtLink 
-            to="/"
-            class="w-full sm:w-auto px-8 py-4 bg-white text-gray-900 border border-gray-200 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-gray-50 transition-all duration-300"
-          >
-            العودة للرئيسية
-            <ArrowRight class="w-5 h-5" />
-          </NuxtLink>
+      <!-- Success State -->
+      <div v-else>
+        <StorefrontBreadcrumbs :items="breadcrumbs" class="mb-8" />
+        
+        <div class="flex flex-col lg:flex-row gap-8 lg:gap-12 relative">
+          
+          <!-- Main Content Column -->
+          <div class="lg:w-2/3">
+            <StorefrontOrderSuccessHero 
+              :order-number="order.orderNumber"
+              :is-copied="isCopied"
+              @copy="copyOrderNumber(order.orderNumber)"
+            />
+            
+            <StorefrontOrderInformation :order="order" />
+            
+            <!-- Actions (Mobile & Desktop) -->
+            <div class="flex flex-col sm:flex-row items-center gap-4 py-8 border-b border-gray-100 dark:border-gray-800">
+              <NuxtLink 
+                :to="`/orders/${order.id}`"
+                class="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-xl transition-colors"
+              >
+                تتبع الطلب
+              </NuxtLink>
+              
+              <NuxtLink 
+                to="/products"
+                class="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium rounded-xl transition-colors"
+              >
+                متابعة التسوق
+                <ArrowRight class="w-4 h-4 rotate-180" /> <!-- Rotate for RTL -->
+              </NuxtLink>
+              
+              <button 
+                @click="downloadInvoice(order.id)"
+                :disabled="isDownloading"
+                class="w-full sm:w-auto sm:mr-auto flex items-center justify-center gap-2 px-6 py-3.5 text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium rounded-xl transition-colors disabled:opacity-50"
+              >
+                <Download class="w-4 h-4" />
+                {{ isDownloading ? 'جاري التحميل...' : 'تحميل تفاصيل الطلب' }}
+              </button>
+            </div>
+            
+            <StorefrontOrderTimeline :timeline="timeline" />
+            <StorefrontOrderItemsList :items="order.items" />
+            <StorefrontOrderShippingInformation :customer="order.customer" :shipping-address="order.shippingAddress" />
+            <StorefrontOrderPaymentInformation :order="order" />
+          </div>
+
+          <!-- Sidebar Column -->
+          <div class="lg:w-1/3">
+            <StorefrontOrderConfirmationSummary :order="order" />
+          </div>
+
+          
         </div>
+        
       </div>
-    </main>
+    </div>
+    
+    <!-- Recommended Products & Promotional Banner -->
+    <div v-if="!loading && !error && order" class="mt-16 border-t border-gray-100 dark:border-gray-800 pt-16">
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <StorefrontPromotionalBanner />
+      </div>
+    </div>
   </div>
 </template>
