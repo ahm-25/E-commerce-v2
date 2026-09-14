@@ -42,9 +42,9 @@ const scroll = (direction: 'left' | 'right') => {
         <div class="max-w-2xl relative">
           <!-- Decorative element behind title -->
           <div class="absolute -top-6 -right-6 w-12 h-12 bg-primary/10 rounded-full blur-xl pointer-events-none"></div>
-          <h2 class="text-3xl md:text-5xl font-black text-text-primary tracking-tight mb-4 relative inline-block">
+          <h2 class="text-3xl md:text-5xl font-bold text-gray-900 tracking-tight mb-4 font-arabic flex items-center gap-4">
             {{ title }}
-            <span class="absolute -bottom-3 right-0 w-1/3 h-1.5 bg-gradient-to-l from-primary to-accent rounded-full"></span>
+            <span class="hidden md:block h-[2px] w-24 bg-gray-900 rounded-full mt-2"></span>
           </h2>
           <p v-if="description" class="text-text-secondary text-lg mt-6">{{ description }}</p>
         </div>
@@ -67,11 +67,7 @@ const scroll = (direction: 'left' | 'right') => {
         </div>
       </div>
 
-      <!-- Scrollable Container -->
       <div class="relative -mx-4 px-4 md:mx-0 md:px-0">
-        <!-- Optional fading edges -->
-        <div class="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-surface to-transparent z-10 pointer-events-none hidden md:block"></div>
-        <div class="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-surface to-transparent z-10 pointer-events-none hidden md:block"></div>
         
         <div 
           ref="scrollContainer"

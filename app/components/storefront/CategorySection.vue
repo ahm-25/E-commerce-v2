@@ -41,9 +41,9 @@ const scroll = (direction: 'left' | 'right') => {
     <div class="container mx-auto px-4 lg:px-8 relative z-10">
       <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
         <div>
-          <h2 class="text-3xl md:text-4xl lg:text-5xl font-black text-text-primary tracking-tight relative inline-block">
+          <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 tracking-tight font-arabic flex items-center gap-4">
             {{ title }}
-            <span class="absolute -bottom-3 left-0 w-1/2 h-1.5 bg-gradient-to-r from-primary to-accent rounded-full"></span>
+            <span class="hidden md:block h-[2px] w-24 bg-gray-900 rounded-full mt-2"></span>
           </h2>
         </div>
         

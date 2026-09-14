@@ -97,7 +97,7 @@ export const useMockData = () => {
       { id: '2', name: 'الملابس', image: 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80', slug: 'clothing' },
       { id: '3', name: 'الحقائب', image: 'https://images.unsplash.com/photo-1584916201218-f4242ceb4809?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80', slug: 'bags' },
       { id: '4', name: 'الأحذية', image: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80', slug: 'shoes' },
-      { id: '5', name: 'الجمال والعناية', image: 'https://images.unsplash.com/photo-1596462502278-27bf85033e5a?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80', slug: 'beauty' },
+      { id: '5', name: 'الجمال والعناية', image: 'https://images.unsplash.com/photo-1570194065650-d99fb4b73b17?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80', slug: 'beauty' },
       { id: '6', name: 'الإلكترونيات', image: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80', slug: 'electronics' },
       { id: '7', name: 'الإكسسوارات', image: 'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80', slug: 'accessories' }
     ],
@@ -150,7 +150,7 @@ export const useMockData = () => {
     promotionalBanner: {
       title: 'أحدث التقنيات بين يديك',
       description: 'اكتشف أفضل الأجهزة الإلكترونية بأسعار مميزة',
-      image: 'https://images.unsplash.com/photo-1531297172867-4f50530e32aa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80',
+      image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80',
       ctaText: 'تسوق الآن',
       ctaLink: '/electronics',
       type: 'split'

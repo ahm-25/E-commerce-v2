@@ -65,27 +65,35 @@ const mockOrders: Record<string, Order> = {
   }
 }
 
+// Fall back to the sample order so any generated id resolves while the API is mocked
+function resolveOrder(orderId: string): Order {
+  const order = mockOrders[orderId]
+  if (order) {
+    return order
+  }
+
+  const template = mockOrders['10248']!
+  return {
+    ...template,
+    id: orderId,
+    orderNumber: orderId,
+    createdAt: new Date().toISOString()
+  }
+}
+
 export class OrderService {
   async getOrder(orderId: string): Promise<Order> {
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 800))
     
-    const order = mockOrders[orderId]
-    if (!order) {
-      throw new Error('Order not found')
-    }
-    
-    return order
+    return resolveOrder(orderId)
   }
 
   async trackOrder(orderId: string): Promise<{ status: string, stages: any[] }> {
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 500))
     
-    const order = mockOrders[orderId]
-    if (!order) {
-      throw new Error('Order not found')
-    }
+    const order = resolveOrder(orderId)
     
     // Return mock timeline data
     return {

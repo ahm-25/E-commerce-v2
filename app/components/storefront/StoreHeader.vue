@@ -74,9 +74,9 @@ onUnmounted(() => {
               <Sun v-if="colorMode.value === 'dark'" class="w-5 h-5 text-text-secondary hover:text-primary" />
               <Moon v-else class="w-5 h-5 text-text-secondary hover:text-primary" />
             </button>
-            <button class="hidden sm:block p-2 hover:bg-background rounded-full transition-colors" aria-label="User Account">
+            <NuxtLink to="/auth/login" class="hidden sm:block p-2 hover:bg-background rounded-full transition-colors" aria-label="User Account">
               <User class="w-5 h-5 text-text-secondary hover:text-primary" />
-            </button>
+            </NuxtLink>
             <button class="hidden sm:block p-2 hover:bg-background rounded-full transition-colors" aria-label="Wishlist">
               <Heart class="w-5 h-5 text-text-secondary hover:text-primary" />
             </button>
