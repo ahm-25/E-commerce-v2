@@ -10,6 +10,9 @@ export const useAccountStore = defineStore('account', {
     addresses: [] as UserAddress[],
     wishlist: [] as Product[],
     isLoading: false,
+    isSaving: false,
+    isUploading: false,
+    saveError: null as string | null,
     error: null as string | null,
     isLoggedIn: true, // Mock logged in state for now
   }),
@@ -25,9 +28,16 @@ export const useAccountStore = defineStore('account', {
         
         this.profile = {
           id: 'u-1',
-          name: 'أحمد عبد الناصر',
+          firstName: 'أحمد',
+          lastName: 'عبد الناصر',
           email: 'ahmed@example.com',
           phone: '01017865860',
+          governorate: 'القاهرة',
+          city: 'مدينة نصر',
+          birthDate: '1990-05-15',
+          emailVerified: true,
+          phoneVerified: true,
+          createdAt: '2023-01-10T10:00:00Z',
           status: 'active'
         }
         
@@ -289,6 +299,53 @@ export const useAccountStore = defineStore('account', {
         this.error = err.message || 'حدث خطأ أثناء جلب البيانات'
       } finally {
         this.isLoading = false
+      }
+    },
+    
+    async updateProfile(updates: Partial<UserProfile>) {
+      this.isSaving = true
+      this.saveError = null
+      
+      try {
+        await new Promise((resolve, reject) => {
+          setTimeout(() => {
+            // Simulate 10% chance of failure
+            if (Math.random() < 0.1) {
+              reject(new Error('فشل تحديث البيانات، يرجى المحاولة مرة أخرى'))
+            } else {
+              resolve(true)
+            }
+          }, 1000)
+        })
+        
+        if (this.profile) {
+          this.profile = { ...this.profile, ...updates }
+        }
+      } catch (err: any) {
+        this.saveError = err.message || 'حدث خطأ أثناء حفظ البيانات'
+        throw err
+      } finally {
+        this.isSaving = false
+      }
+    },
+    
+    async uploadAvatar(file: File) {
+      this.isUploading = true
+      this.saveError = null
+      
+      try {
+        // Mock API upload
+        await new Promise(resolve => setTimeout(resolve, 1500))
+        
+        const avatarUrl = URL.createObjectURL(file)
+        if (this.profile) {
+          this.profile.avatarUrl = avatarUrl
+        }
+      } catch (err: any) {
+        this.saveError = err.message || 'حدث خطأ أثناء رفع الصورة'
+        throw err
+      } finally {
+        this.isUploading = false
       }
     },
     

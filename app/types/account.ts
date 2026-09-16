@@ -11,10 +11,17 @@ export interface UserAddress {
 
 export interface UserProfile {
   id: string
-  name: string
+  firstName: string
+  lastName: string
   email: string
-  phone: string
-  avatar?: string
+  phone?: string
+  avatarUrl?: string
+  governorate?: string
+  city?: string
+  birthDate?: string
+  emailVerified: boolean
+  phoneVerified?: boolean
+  createdAt: string
   status: 'active' | 'inactive'
 }
 

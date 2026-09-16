@@ -37,7 +37,7 @@ const accountStore = useAccountStore()
             <span class="text-sm">الاسم الكامل</span>
           </div>
           <div class="font-semibold text-text-primary flex-grow">
-            {{ accountStore.profile.name }}
+            {{ accountStore.profile.firstName }} {{ accountStore.profile.lastName }}
           </div>
         </div>
         

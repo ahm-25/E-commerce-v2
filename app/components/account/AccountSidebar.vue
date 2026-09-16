@@ -23,7 +23,7 @@ const menuItems = [
   { name: 'المفضلة', path: '/account/wishlist', icon: Heart },
   { name: 'العناوين المحفوظة', path: '/account/addresses', icon: MapPin },
   { name: 'البيانات الشخصية', path: '/account/profile', icon: User },
-  { name: 'تغيير كلمة المرور', path: '/account/password', icon: Lock },
+  { name: 'تغيير كلمة المرور', path: '/account/security', icon: Lock },
   { name: 'الإعدادات', path: '/account/settings', icon: Settings },
 ]
 
@@ -47,11 +47,11 @@ const handleLogout = () => {
     <div v-if="accountStore.profile" class="p-6 border-b border-border flex flex-col items-center text-center">
       <div class="relative mb-4">
         <div class="w-20 h-20 bg-background rounded-full flex items-center justify-center border-2 border-primary/10 overflow-hidden shadow-sm">
-          <img v-if="accountStore.profile.avatar" :src="accountStore.profile.avatar" :alt="accountStore.profile.name" class="w-full h-full object-cover">
+          <img v-if="accountStore.profile.avatarUrl" :src="accountStore.profile.avatarUrl" :alt="`${accountStore.profile.firstName} ${accountStore.profile.lastName}`" class="w-full h-full object-cover">
           <User v-else class="w-10 h-10 text-primary/60" />
         </div>
       </div>
-      <h3 class="text-lg font-bold text-text-primary mb-1">{{ accountStore.profile.name }}</h3>
+      <h3 class="text-lg font-bold text-text-primary mb-1">{{ accountStore.profile.firstName }} {{ accountStore.profile.lastName }}</h3>
       <p class="text-sm text-text-secondary mb-3" dir="ltr">{{ accountStore.profile.email }}</p>
       
       <div v-if="accountStore.profile.status === 'active'" class="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 rounded-full text-xs font-medium">
