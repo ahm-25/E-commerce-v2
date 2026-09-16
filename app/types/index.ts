@@ -140,3 +140,6 @@ export interface HomepageData {
 export * from './cart'
 export * from './checkout'
 export * from './order'
+export * from './account'
+export * from './wishlist'
+export * from './address'

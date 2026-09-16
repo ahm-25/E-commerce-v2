@@ -77,9 +77,9 @@ onUnmounted(() => {
             <NuxtLink to="/auth/login" class="hidden sm:block p-2 hover:bg-background rounded-full transition-colors" aria-label="User Account">
               <User class="w-5 h-5 text-text-secondary hover:text-primary" />
             </NuxtLink>
-            <button class="hidden sm:block p-2 hover:bg-background rounded-full transition-colors" aria-label="Wishlist">
+            <NuxtLink to="/account/wishlist" class="hidden sm:block p-2 hover:bg-background rounded-full transition-colors" aria-label="Wishlist">
               <Heart class="w-5 h-5 text-text-secondary hover:text-primary" />
-            </button>
+            </NuxtLink>
             <NuxtLink to="/cart" class="relative p-2 hover:bg-background rounded-full transition-colors flex items-center justify-center" aria-label="سلة التسوق">
               <ShoppingCart class="w-5 h-5 text-text-secondary hover:text-primary transition-colors" />
               <span v-if="cartCount > 0" class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-primary text-white text-[10px] font-bold flex items-center justify-center rounded-full shadow-sm">

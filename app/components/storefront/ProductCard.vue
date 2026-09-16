@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Heart, ShoppingBag, Star } from 'lucide-vue-next'
 import { useShopStore } from '~/stores/useStore'
+import { useWishlistStore } from '~/stores/wishlist'
 import type { Product } from '~/types'
 
 const props = withDefaults(defineProps<{
@@ -11,6 +12,7 @@ const props = withDefaults(defineProps<{
 })
 
 const shopStore = useShopStore()
+const wishlistStore = useWishlistStore()
 </script>
 
 <template>
@@ -39,11 +41,11 @@ const shopStore = useShopStore()
 
       <!-- Wishlist Action -->
       <button 
-        @click.prevent="shopStore.toggleWishlist(product.id)"
+        @click.prevent="wishlistStore.toggleItem(product)"
         class="absolute top-3 left-3 z-20 p-2 bg-white/70 backdrop-blur-md rounded-full text-gray-900 hover:text-rose-600 transition-colors duration-300 shadow-sm"
         aria-label="Toggle Wishlist"
       >
-        <Heart :class="{'fill-rose-600 text-rose-600': shopStore.isInWishlist(product.id)}" class="w-4 h-4 transition-colors" stroke-width="1.5" />
+        <Heart :class="{'fill-rose-600 text-rose-600': wishlistStore.isInWishlist(product.id)}" class="w-4 h-4 transition-colors" stroke-width="1.5" />
       </button>
 
       <NuxtLink :to="`/products/${product.slug}`" class="block w-full h-full">
