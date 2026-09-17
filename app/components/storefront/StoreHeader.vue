@@ -1,15 +1,41 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-import { Search, ShoppingCart, Heart, User, Sun, Moon, Menu, X } from 'lucide-vue-next'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { Search, ShoppingCart, Heart, User, Sun, Moon, Menu, X, ArrowUpLeft } from 'lucide-vue-next'
 import { useShopStore } from '~/stores/useStore'
 import { useCart } from '~/composables/useCart'
+import { mockProducts } from '~/composables/useProducts'
 
 const colorMode = useColorMode()
 const shopStore = useShopStore()
 const { cartCount } = useCart()
+const router = useRouter()
 
 const toggleTheme = () => {
   colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
+}
+
+const searchQuery = ref('')
+const isSearchFocused = ref(false)
+
+const searchSuggestions = computed(() => {
+  if (searchQuery.value.trim().length < 2) return []
+  const query = searchQuery.value.toLowerCase()
+  return mockProducts
+    .filter(p => p.name.toLowerCase().includes(query) || (p.brand && p.brand.toLowerCase().includes(query)))
+    .slice(0, 5)
+})
+
+const submitSearch = () => {
+  if (searchQuery.value.trim().length === 0) return
+  isSearchFocused.value = false
+  router.push({ path: '/search', query: { q: searchQuery.value } })
+}
+
+const handleSearchBlur = () => {
+  setTimeout(() => {
+    isSearchFocused.value = false
+  }, 200)
 }
 
 const isScrolled = ref(false)
@@ -60,13 +86,63 @@ onUnmounted(() => {
         <!-- Actions -->
         <div class="flex items-center gap-3 lg:gap-5">
           <!-- Search Bar (Desktop) -->
-          <div class="hidden lg:flex relative items-center">
-            <input 
-              type="text" 
-              placeholder="ابحث عن منتج، ماركة أو فئة..." 
-              class="w-64 pl-4 pr-10 py-2 bg-background border border-border rounded-full text-sm focus:outline-none focus:border-primary transition-colors"
+          <div class="hidden lg:flex relative items-center" v-on-click-outside="() => isSearchFocused = false">
+            <form @submit.prevent="submitSearch" class="relative w-64 group">
+              <input 
+                v-model="searchQuery"
+                type="text" 
+                placeholder="ابحث عن منتج، ماركة..." 
+                class="w-full pl-10 pr-10 py-2 bg-background border border-border rounded-full text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                @focus="isSearchFocused = true"
+                @keydown.esc="isSearchFocused = false; searchQuery = ''"
+              >
+              <Search class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
+              <button 
+                v-if="searchQuery" 
+                type="button"
+                @click="searchQuery = ''; isSearchFocused = true"
+                class="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-red-500 transition-colors p-0.5"
+              >
+                <X class="w-4 h-4" />
+              </button>
+            </form>
+
+            <!-- Search Suggestions Dropdown -->
+            <div 
+              v-if="isSearchFocused && searchQuery.length >= 2" 
+              class="absolute top-full right-0 mt-2 w-80 bg-surface rounded-2xl shadow-premium border border-border overflow-hidden z-50 transform transition-all"
             >
-            <Search class="absolute right-3 w-4 h-4 text-text-secondary" />
+              <div v-if="searchSuggestions.length > 0" class="flex flex-col max-h-[70vh] overflow-y-auto">
+                <NuxtLink 
+                  v-for="product in searchSuggestions" 
+                  :key="product.id"
+                  :to="`/products/${product.slug}`"
+                  class="flex items-center gap-3 p-3 hover:bg-background/80 transition-colors border-b border-border/50 last:border-0"
+                  @click="isSearchFocused = false"
+                >
+                  <img :src="product.images[0]?.url" :alt="product.name" class="w-12 h-12 object-cover rounded-lg border border-border">
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-text-primary truncate">{{ product.name }}</p>
+                    <p class="text-xs text-text-secondary truncate">{{ product.category?.name || product.brand }}</p>
+                  </div>
+                  <div class="text-left flex-shrink-0">
+                    <p class="text-sm font-bold text-primary" dir="ltr">{{ product.price }} {{ product.currency }}</p>
+                  </div>
+                </NuxtLink>
+                
+                <button 
+                  @click="submitSearch"
+                  class="p-3 text-center text-sm font-bold text-primary hover:bg-primary/5 transition-colors border-t border-border flex items-center justify-center gap-2"
+                >
+                  عرض كل نتائج "{{ searchQuery }}"
+                  <ArrowUpLeft class="w-4 h-4" />
+                </button>
+              </div>
+              <div v-else class="p-6 text-center text-text-secondary">
+                <Search class="w-8 h-8 mx-auto mb-2 text-border" />
+                <p class="text-sm">لم نجد نتائج مطابقة لبحثك</p>
+              </div>
+            </div>
           </div>
 
           <div class="flex items-center gap-3">

@@ -80,6 +80,7 @@ export interface Product {
 }
 
 export interface ProductFilters {
+  searchQuery?: string
   category?: string
   brands?: string[]
   colors?: string[]

@@ -10,7 +10,7 @@ const mockCategories: Category[] = [
   { id: '4', name: 'حقائب مسائية', slug: 'evening-bags', image: '/images/categories/evening-bags.jpg' },
 ]
 
-const mockProducts: Product[] = Array.from({ length: 48 }).map((_, i) => ({
+export const mockProducts: Product[] = Array.from({ length: 48 }).map((_, i) => ({
   id: `prod-${i + 1}`,
   slug: `product-${i + 1}`,
   name: `حقيبة ${i % 2 === 0 ? 'نسائية أنيقة' : 'يد كلاسيكية'} ${i + 1}`,
@@ -52,8 +52,17 @@ export const useProducts = () => {
       let filtered = [...mockProducts]
       
       // Apply filters
-      const { category, brands, colors, minPrice, maxPrice, rating, sort } = filtersStore.filters
+      const { searchQuery, category, brands, colors, minPrice, maxPrice, rating, sort } = filtersStore.filters
       
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase()
+        filtered = filtered.filter(p => 
+          p.name.toLowerCase().includes(query) || 
+          p.description.toLowerCase().includes(query) ||
+          (p.brand && p.brand.toLowerCase().includes(query))
+        )
+      }
+
       if (category) {
         filtered = filtered.filter(p => p.category?.slug === category)
       }

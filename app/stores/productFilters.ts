@@ -4,6 +4,7 @@ import type { ProductFilters } from '~/types'
 export const useProductFiltersStore = defineStore('productFilters', {
   state: (): { filters: ProductFilters, viewMode: 'grid' | 'list', isMobileFiltersOpen: boolean } => ({
     filters: {
+      searchQuery: undefined,
       category: undefined,
       brands: [],
       colors: [],
@@ -39,7 +40,9 @@ export const useProductFiltersStore = defineStore('productFilters', {
 
     clearFilters() {
       const currentCategory = this.filters.category
+      const currentSearchQuery = this.filters.searchQuery
       this.filters = {
+        searchQuery: currentSearchQuery,
         category: currentCategory, // Keep category if in category page
         brands: [],
         colors: [],
@@ -61,6 +64,7 @@ export const useProductFiltersStore = defineStore('productFilters', {
     },
 
     syncWithQuery(query: any) {
+      if (query.q) this.filters.searchQuery = query.q
       if (query.category) this.filters.category = query.category
       if (query.brands) this.filters.brands = Array.isArray(query.brands) ? query.brands : query.brands.split(',')
       if (query.colors) this.filters.colors = Array.isArray(query.colors) ? query.colors : query.colors.split(',')
@@ -85,6 +89,7 @@ export const useProductFiltersStore = defineStore('productFilters', {
     queryObject: (state) => {
       const query: Record<string, string> = {}
       
+      if (state.filters.searchQuery) query.q = state.filters.searchQuery
       if (state.filters.category) query.category = state.filters.category
       if (state.filters.brands?.length) query.brands = state.filters.brands.join(',')
       if (state.filters.colors?.length) query.colors = state.filters.colors.join(',')
