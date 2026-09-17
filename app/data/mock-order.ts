@@ -21,6 +21,7 @@ export const mockOrders: Order[] = [
     shippingCost: 50,
     tax: 1190,
     total: 11240,
+    notes: 'يرجى الاتصال بي قبل التوصيل بنصف ساعة للتأكيد.',
     customer: {
       name: 'أحمد عبد الناصر',
       email: 'ahmed@example.com',

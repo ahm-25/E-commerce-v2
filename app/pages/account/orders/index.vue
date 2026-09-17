@@ -1,31 +1,15 @@
 <script setup lang="ts">
-import { onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAccountStore } from '~/stores/account'
+import { onMounted } from 'vue'
+import { useOrdersStore } from '~/stores/orders'
 import { ChevronLeft, ShoppingBag, PackageSearch } from 'lucide-vue-next'
 import type { OrderStatus } from '~/types/order'
 import AccountSidebar from '~/components/account/AccountSidebar.vue'
 
-const router = useRouter()
-const accountStore = useAccountStore()
+const ordersStore = useOrdersStore()
 
-// Initialize data and check auth
-onMounted(() => {
-  if (!accountStore.isLoggedIn) {
-    router.push('/auth/login')
-    return
-  }
-  
-  if (!accountStore.profile) {
-    accountStore.fetchDashboardData()
-  }
-})
-
-// Watch auth state
-watch(() => accountStore.isLoggedIn, (newVal) => {
-  if (!newVal) {
-    router.push('/auth/login')
-  }
+onMounted(async () => {
+  await ordersStore.fetchOrders(true)
+  await ordersStore.fetchOrderSummary()
 })
 
 useHead({
@@ -55,8 +39,10 @@ const getStatusConfig = (status: OrderStatus) => {
     confirmed: { label: 'تم التأكيد', classes: 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400' },
     processing: { label: 'قيد التجهيز', classes: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400' },
     shipped: { label: 'تم الشحن', classes: 'bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400' },
+    out_for_delivery: { label: 'خرج للتوصيل', classes: 'bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400' },
     delivered: { label: 'تم التوصيل', classes: 'bg-green-50 text-green-600 dark:bg-green-500/10 dark:text-green-400' },
-    cancelled: { label: 'ملغي', classes: 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400' }
+    cancelled: { label: 'ملغي', classes: 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400' },
+    returned: { label: 'مرتجع', classes: 'bg-gray-50 text-gray-600 dark:bg-gray-500/10 dark:text-gray-400' },
   }
   return configs[status] || configs.pending
 }
@@ -124,12 +110,12 @@ const getStatusConfig = (status: OrderStatus) => {
             </div>
 
             <!-- Loading State -->
-            <div v-if="accountStore.isLoading" class="p-6 space-y-4">
+            <div v-if="ordersStore.isLoading" class="p-6 space-y-4">
               <div v-for="i in 5" :key="`skel-ord-${i}`" class="h-20 bg-border rounded-xl animate-pulse"></div>
             </div>
 
             <!-- Empty State -->
-            <div v-else-if="accountStore.recentOrders.length === 0" class="p-16 flex flex-col items-center justify-center text-center">
+            <div v-else-if="ordersStore.orders.length === 0" class="p-16 flex flex-col items-center justify-center text-center">
               <div class="w-24 h-24 bg-background rounded-full flex items-center justify-center mb-6">
                 <PackageSearch class="w-12 h-12 text-text-secondary opacity-50" />
               </div>
@@ -156,9 +142,9 @@ const getStatusConfig = (status: OrderStatus) => {
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-border">
-                    <tr v-for="order in accountStore.recentOrders" :key="order.id" class="hover:bg-background/50 transition-colors">
+                    <tr v-for="order in ordersStore.orders" :key="order.id" class="hover:bg-background/50 transition-colors">
                       <td class="px-6 py-4">
-                        <span class="font-bold text-text-primary">{{ order.orderNumber }}</span>
+                        <span class="font-bold text-text-primary">#{{ order.orderNumber }}</span>
                       </td>
                       <td class="px-6 py-4 text-text-secondary text-sm">
                         {{ formatDate(order.createdAt) }}
@@ -182,7 +168,7 @@ const getStatusConfig = (status: OrderStatus) => {
                         </span>
                       </td>
                       <td class="px-6 py-4">
-                        <NuxtLink :to="`/account/orders/${order.id}`" class="px-4 py-2 border border-border rounded-lg text-sm font-semibold text-primary hover:border-primary hover:bg-primary/5 transition-colors inline-block">
+                        <NuxtLink :to="`/account/orders/${order.orderNumber}`" class="px-4 py-2 border border-border rounded-lg text-sm font-semibold text-primary hover:border-primary hover:bg-primary/5 transition-colors inline-block">
                           تفاصيل الطلب
                         </NuxtLink>
                       </td>
@@ -193,10 +179,10 @@ const getStatusConfig = (status: OrderStatus) => {
 
               <!-- Mobile Cards View -->
               <div class="md:hidden divide-y divide-border">
-                <div v-for="order in accountStore.recentOrders" :key="order.id" class="p-4 space-y-4">
+                <div v-for="order in ordersStore.orders" :key="order.id" class="p-4 space-y-4">
                   <div class="flex justify-between items-start">
                     <div>
-                      <div class="font-bold text-text-primary mb-1">{{ order.orderNumber }}</div>
+                      <div class="font-bold text-text-primary mb-1">#{{ order.orderNumber }}</div>
                       <div class="text-sm text-text-secondary">{{ formatDate(order.createdAt) }}</div>
                     </div>
                     <span :class="['px-3 py-1 text-xs font-semibold rounded-full', getStatusConfig(order.status).classes]">
@@ -216,7 +202,7 @@ const getStatusConfig = (status: OrderStatus) => {
                   
                   <div class="flex items-center justify-between pt-2">
                     <div class="font-bold text-text-primary">{{ formatCurrency(order.total) }}</div>
-                    <NuxtLink :to="`/account/orders/${order.id}`" class="px-4 py-2 border border-border rounded-lg text-sm font-semibold text-primary hover:border-primary hover:bg-primary/5 transition-colors">
+                    <NuxtLink :to="`/account/orders/${order.orderNumber}`" class="px-4 py-2 border border-border rounded-lg text-sm font-semibold text-primary hover:border-primary hover:bg-primary/5 transition-colors">
                       تفاصيل
                     </NuxtLink>
                   </div>

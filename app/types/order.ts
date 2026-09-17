@@ -83,4 +83,5 @@ export interface Order {
   shippingCost: number
   tax: number
   total: number
+  notes?: string
 }

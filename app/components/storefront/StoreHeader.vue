@@ -86,7 +86,7 @@ onUnmounted(() => {
         <!-- Actions -->
         <div class="flex items-center gap-3 lg:gap-5">
           <!-- Search Bar (Desktop) -->
-          <div class="hidden lg:flex relative items-center" v-on-click-outside="() => isSearchFocused = false">
+          <div class="hidden lg:flex relative items-center" @blur.capture="handleSearchBlur">
             <form @submit.prevent="submitSearch" class="relative w-64 group">
               <input 
                 v-model="searchQuery"

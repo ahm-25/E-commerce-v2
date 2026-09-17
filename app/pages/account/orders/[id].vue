@@ -17,7 +17,7 @@ definePageMeta({
 
 const route = useRoute()
 const ordersStore = useOrdersStore()
-const orderId = route.params.orderId as string
+const orderId = route.params.id as string
 
 onMounted(async () => {
   await ordersStore.fetchOrderById(orderId)
@@ -173,13 +173,40 @@ const getStatusName = (status: string) => {
               <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
                 <NuxtLink 
                   to="/account/orders" 
-                  class="flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2.5 border border-border text-text-primary rounded-xl font-bold hover:bg-background transition-colors text-sm"
+                  class="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 border border-border text-text-primary rounded-xl font-bold hover:bg-background transition-colors text-sm"
                 >
                   <ArrowRight class="w-4 h-4" />
                   العودة
                 </NuxtLink>
+                
+                <a 
+                  v-if="order.tracking?.url"
+                  :href="order.tracking.url"
+                  target="_blank"
+                  class="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-xl font-bold hover:bg-primary/20 transition-colors text-sm"
+                >
+                  تتبع الطلب
+                </a>
+
                 <button 
-                  class="flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-primary/5 text-primary border border-primary/20 rounded-xl font-bold hover:bg-primary/10 transition-colors text-sm"
+                  v-if="['delivered', 'cancelled', 'returned'].includes(order.status)"
+                  @click="handleReorder"
+                  class="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-xl font-bold hover:bg-primary-hover transition-colors text-sm"
+                >
+                  <RefreshCcw class="w-4 h-4" />
+                  إعادة الطلب
+                </button>
+
+                <button 
+                  v-if="['pending', 'processing'].includes(order.status)"
+                  @click="handleCancel"
+                  class="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 border border-red-500/30 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl font-bold transition-colors text-sm"
+                >
+                  إلغاء الطلب
+                </button>
+
+                <button 
+                  class="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 border border-border text-text-primary rounded-xl font-bold hover:bg-background transition-colors text-sm"
                 >
                   <Download class="w-4 h-4" />
                   الفاتورة
@@ -201,6 +228,12 @@ const getStatusName = (status: string) => {
                   :customer="order.customer" 
                   :tracking="order.tracking" 
                 />
+
+                <!-- Customer Notes -->
+                <div v-if="order.notes" class="bg-surface rounded-2xl border border-border shadow-sm p-6">
+                  <h3 class="text-lg font-bold text-text-primary mb-3">ملاحظات الطلب</h3>
+                  <p class="text-text-secondary leading-relaxed">{{ order.notes }}</p>
+                </div>
               </div>
               
               <div class="space-y-6">
@@ -216,40 +249,27 @@ const getStatusName = (status: string) => {
                 
                 <!-- Payment Info -->
                 <PaymentInfo v-if="order.paymentInfo" :payment="order.paymentInfo" />
+              </div>
+            </div>
 
-                <!-- Action Buttons based on status -->
-                <div class="bg-surface rounded-2xl border border-border shadow-sm p-6 space-y-3">
-                  <button 
-                    v-if="['delivered', 'cancelled', 'returned'].includes(order.status)"
-                    @click="handleReorder"
-                    class="w-full flex items-center justify-center gap-2 px-5 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary-hover transition-colors"
-                  >
-                    <RefreshCcw class="w-5 h-5" />
-                    إعادة الطلب
-                  </button>
-
-                  <button 
-                    v-if="['pending', 'processing'].includes(order.status)"
-                    @click="handleCancel"
-                    class="w-full flex items-center justify-center gap-2 px-5 py-3 border border-red-500/30 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl font-bold transition-colors"
-                  >
-                    إلغاء الطلب
-                  </button>
-
-                  <button 
-                    class="w-full flex items-center justify-center gap-2 px-5 py-3 border border-border text-text-primary rounded-xl font-bold hover:bg-background transition-colors"
-                  >
-                    <Headset class="w-5 h-5" />
-                    التواصل مع الدعم
-                  </button>
-                  
-                  <button 
-                    v-if="['delivered'].includes(order.status)"
-                    class="w-full text-sm font-bold text-text-secondary hover:text-text-primary text-center py-2 transition-colors"
-                  >
-                    الإبلاغ عن مشكلة في الطلب
-                  </button>
-                </div>
+            <!-- Support Section -->
+            <div class="bg-surface rounded-2xl border border-border shadow-sm p-8 text-center flex flex-col items-center mt-6">
+              <div class="w-16 h-16 bg-blue-50 dark:bg-blue-500/10 text-blue-500 rounded-full flex items-center justify-center mb-4">
+                <Headset class="w-8 h-8" />
+              </div>
+              <h3 class="text-xl font-bold text-text-primary mb-2">هل تحتاج إلى مساعدة؟</h3>
+              <p class="text-text-secondary mb-6 max-w-md mx-auto">إذا واجهت مشكلة في طلبك، يمكنك التواصل مع فريق الدعم.</p>
+              
+              <div class="flex flex-wrap justify-center gap-3">
+                <button class="px-6 py-2.5 bg-primary text-white rounded-xl font-bold hover:bg-primary-hover transition-colors text-sm">
+                  تواصل مع الدعم
+                </button>
+                <button class="px-6 py-2.5 border border-border text-text-primary rounded-xl font-bold hover:bg-background transition-colors text-sm">
+                  الإبلاغ عن مشكلة
+                </button>
+                <button v-if="order.status === 'delivered'" class="px-6 py-2.5 border border-border text-text-primary rounded-xl font-bold hover:bg-background transition-colors text-sm">
+                  طلب إرجاع
+                </button>
               </div>
             </div>
 
