@@ -127,10 +127,17 @@ export interface Testimonial {
   location?: string
 }
 
+export interface Brand {
+  id: string
+  name: string
+  logo: string
+}
+
 export interface HomepageData {
   store: Store
   hero: Banner
   categories: Category[]
+  brands?: Brand[]
   featuredProducts: Product[]
   promotionalBanner: Banner
   bestSellers: Product[]

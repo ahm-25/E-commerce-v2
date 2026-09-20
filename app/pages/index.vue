@@ -22,6 +22,9 @@ useHead({
       :categories="mockData.categories" 
     />
     
+    <!-- Brands Section -->
+    <HomeBrands />
+    
     <!-- Featured Products Section -->
     <StorefrontProductSection 
       title="منتجات مميزة"
