@@ -55,12 +55,17 @@ export const useShopStore = defineStore('shop', () => {
     const cartStore = useCartStore()
     cartStore.addItem({
       id: cartItemId,
-      title: product.name || product.title,
-      price: product.price,
-      quantity,
+      productId: product.id,
+      slug: product.slug || product.id,
+      name: product.name || product.title || '',
       image: product.images?.[0]?.url || product.image || '',
-      seller: { name: product.seller?.name || 'المتجر الرئيسي' },
-      attributes: options
+      price: product.price,
+      compareAtPrice: product.compareAtPrice,
+      quantity,
+      color: options?.color,
+      size: options?.size,
+      variantId: options?.variantId,
+      isAvailable: product.isAvailable ?? true
     })
   }
 

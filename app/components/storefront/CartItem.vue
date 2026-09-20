@@ -47,14 +47,14 @@ const decreaseQuantity = () => {
     <!-- Product Details -->
     <div class="flex-1 flex flex-col justify-between">
       <div class="flex justify-between items-start gap-4">
-        <div>
+        <div class="min-w-0 flex-1">
           <NuxtLink :to="`/products/${item.slug}`">
             <h3 class="text-sm md:text-base font-bold text-gray-900 group-hover:text-primary transition-colors line-clamp-2 leading-snug mb-1">
               {{ item.name }}
             </h3>
           </NuxtLink>
           
-          <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs md:text-sm text-gray-500 mt-2">
+          <div v-if="item.color || item.size" class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs md:text-sm text-gray-500 mt-2">
             <span v-if="item.color" class="flex items-center gap-1.5">
               اللون: <span class="font-medium text-gray-700">{{ item.color }}</span>
             </span>
@@ -62,6 +62,12 @@ const decreaseQuantity = () => {
             <span v-if="item.size" class="flex items-center gap-1.5">
               المقاس: <span class="font-medium text-gray-700">{{ item.size }}</span>
             </span>
+          </div>
+
+          <!-- Mobile Price -->
+          <div class="md:hidden flex items-baseline flex-wrap gap-x-2 gap-y-0.5 mt-2">
+            <span class="font-bold text-gray-900 text-sm whitespace-nowrap">{{ item.price.toLocaleString() }} ج.م</span>
+            <span v-if="item.compareAtPrice" class="text-[11px] text-gray-400 line-through whitespace-nowrap">{{ item.compareAtPrice.toLocaleString() }} ج.م</span>
           </div>
         </div>
 
@@ -72,9 +78,9 @@ const decreaseQuantity = () => {
         </div>
       </div>
 
-      <div class="flex items-end justify-between mt-4">
+      <div class="flex items-center justify-between gap-2 mt-4">
         <!-- Quantity Selector -->
-        <div class="flex items-center bg-gray-50 border border-gray-200 rounded-lg p-1">
+        <div class="flex items-center shrink-0 bg-gray-50 border border-gray-200 rounded-lg p-1">
           <button 
             @click="increaseQuantity"
             class="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center rounded-md bg-white text-gray-600 hover:text-gray-900 hover:shadow-sm border border-transparent hover:border-gray-200 transition-all active:scale-95"
@@ -83,7 +89,7 @@ const decreaseQuantity = () => {
             <Plus class="w-3.5 h-3.5 md:w-4 md:h-4" />
           </button>
           
-          <span class="w-10 md:w-12 text-center text-sm md:text-base font-bold text-gray-900 select-none">
+          <span class="w-8 md:w-12 text-center text-sm md:text-base font-bold text-gray-900 select-none">
             {{ item.quantity }}
           </span>
           
@@ -97,14 +103,8 @@ const decreaseQuantity = () => {
           </button>
         </div>
 
-        <!-- Mobile Price (Visible only on mobile) -->
-        <div class="md:hidden flex flex-col items-end">
-          <span class="font-bold text-gray-900 text-sm">{{ item.price.toLocaleString() }} ج.م</span>
-          <span v-if="item.compareAtPrice" class="text-[10px] text-gray-400 line-through">{{ item.compareAtPrice.toLocaleString() }} ج.م</span>
-        </div>
-
         <!-- Actions -->
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1 md:gap-2 shrink-0">
           <button 
             @click="emit('save-to-wishlist', item.productId)"
             class="p-2 text-gray-400 hover:text-primary transition-colors hover:bg-primary/5 rounded-full"

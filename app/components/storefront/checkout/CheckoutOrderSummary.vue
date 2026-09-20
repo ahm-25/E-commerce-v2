@@ -28,7 +28,7 @@ const cartStore = useCartStore()
         <div class="w-16 h-16 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0 border border-gray-200">
           <NuxtImg 
             :src="item.image" 
-            :alt="item.title"
+            :alt="item.name"
             class="w-full h-full object-cover"
             format="webp"
             width="64"
@@ -38,12 +38,11 @@ const cartStore = useCartStore()
         
         <!-- Info -->
         <div class="flex-grow flex flex-col justify-center min-w-0">
-          <h4 class="font-bold text-sm text-gray-900 line-clamp-1" :title="item.title">{{ item.title }}</h4>
+          <h4 class="font-bold text-sm text-gray-900 line-clamp-1" :title="item.name">{{ item.name }}</h4>
           
-          <div v-if="item.attributes" class="text-xs text-gray-500 mt-1 flex flex-wrap gap-1">
-            <span v-for="(value, key) in item.attributes" :key="key" class="bg-gray-100 px-1.5 py-0.5 rounded-md">
-              {{ value }}
-            </span>
+          <div v-if="item.color || item.size" class="text-xs text-gray-500 mt-1 flex flex-wrap gap-1">
+            <span v-if="item.color" class="bg-gray-100 px-1.5 py-0.5 rounded-md">{{ item.color }}</span>
+            <span v-if="item.size" class="bg-gray-100 px-1.5 py-0.5 rounded-md">{{ item.size }}</span>
           </div>
 
           <div class="flex items-center justify-between mt-1">
