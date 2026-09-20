@@ -68,6 +68,10 @@ export const useShopStore = defineStore('shop', () => {
     isMobileMenuOpen.value = !isMobileMenuOpen.value
   }
 
+  const closeMobileMenu = () => {
+    isMobileMenuOpen.value = false
+  }
+
   const mergeCart = () => {
     // Mock implementation for merging guest cart with user cart after login
     console.log('Merging guest cart with user cart...');
@@ -83,6 +87,7 @@ export const useShopStore = defineStore('shop', () => {
     isInWishlist,
     addToCart,
     toggleMobileMenu,
+    closeMobileMenu,
     mergeCart
   }
 })

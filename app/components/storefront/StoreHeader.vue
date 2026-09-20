@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { Search, ShoppingCart, Heart, User, Sun, Moon, Menu, X, ArrowUpLeft } from 'lucide-vue-next'
 import { useShopStore } from '~/stores/useStore'
 import { useCart } from '~/composables/useCart'
@@ -12,6 +12,7 @@ const colorMode = useColorMode()
 const shopStore = useShopStore()
 const { cartCount } = useCart()
 const router = useRouter()
+const route = useRoute()
 
 const toggleTheme = () => {
   colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
@@ -37,7 +38,11 @@ onClickOutside(searchContainerRef, () => {
 
 const isMobileSearchOpen = ref(false)
 
-
+// Navigating away should always dismiss the mobile menu and search panel
+watch(() => route.fullPath, () => {
+  shopStore.closeMobileMenu()
+  isMobileSearchOpen.value = false
+})
 
 const isScrolled = ref(false)
 
@@ -247,11 +252,11 @@ onUnmounted(() => {
     <div v-if="shopStore.isMobileMenuOpen" class="md:hidden absolute top-full left-0 w-full bg-surface border-b border-border shadow-lg py-4">
       <div class="container mx-auto px-4 flex flex-col gap-4">
         <nav class="flex flex-col gap-2">
-          <NuxtLink to="/" class="py-2 text-sm font-medium border-b border-border">الرئيسية</NuxtLink>
-          <NuxtLink to="/products" class="py-2 text-sm font-medium border-b border-border">المنتجات</NuxtLink>
-          <NuxtLink to="/categories" class="py-2 text-sm font-medium border-b border-border">الأقسام</NuxtLink>
-          <NuxtLink to="/offers" class="py-2 text-sm font-medium border-b border-border">العروض</NuxtLink>
-          <NuxtLink to="/cart" class="py-2 text-sm font-medium border-b border-border flex items-center justify-between">
+          <NuxtLink to="/" @click="shopStore.closeMobileMenu()" class="py-2 text-sm font-medium border-b border-border">الرئيسية</NuxtLink>
+          <NuxtLink to="/products" @click="shopStore.closeMobileMenu()" class="py-2 text-sm font-medium border-b border-border">المنتجات</NuxtLink>
+          <NuxtLink to="/categories" @click="shopStore.closeMobileMenu()" class="py-2 text-sm font-medium border-b border-border">الأقسام</NuxtLink>
+          <NuxtLink to="/offers" @click="shopStore.closeMobileMenu()" class="py-2 text-sm font-medium border-b border-border">العروض</NuxtLink>
+          <NuxtLink to="/cart" @click="shopStore.closeMobileMenu()" class="py-2 text-sm font-medium border-b border-border flex items-center justify-between">
             <span>سلة التسوق</span>
             <span v-if="cartCount > 0" class="px-2 py-0.5 text-xs bg-primary text-white rounded-full font-bold">{{ cartCount }}</span>
           </NuxtLink>

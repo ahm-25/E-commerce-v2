@@ -19,7 +19,7 @@ const wishlistStore = useWishlistStore()
   <div 
     class="group flex relative transition-all duration-300 ease-in-out"
     :class="viewMode === 'grid' 
-      ? 'flex-col gap-3 bg-transparent' 
+      ? 'flex-col gap-3 bg-transparent h-full' 
       : 'flex-row items-start gap-6 bg-transparent border-b border-gray-200 pb-6'"
   >
     <!-- Image Area -->
@@ -81,7 +81,7 @@ const wishlistStore = useWishlistStore()
     </div>
 
     <!-- Product Info -->
-    <div class="flex flex-col gap-1 pt-2 w-full text-start items-start font-arabic">
+    <div class="flex flex-col flex-1 gap-1 pt-2 w-full text-start items-start font-arabic">
       
       <NuxtLink :to="`/products/${product.slug}`" class="group/title w-full">
         <h3 class="text-sm font-bold text-gray-900 line-clamp-1 group-hover/title:text-gray-500 transition-colors w-full">
@@ -89,7 +89,7 @@ const wishlistStore = useWishlistStore()
         </h3>
       </NuxtLink>
 
-      <div class="flex items-center gap-2 mt-0.5 w-full">
+      <div class="flex items-baseline flex-wrap gap-x-2 gap-y-0.5 mt-0.5 w-full">
         <span class="text-sm font-medium text-gray-700">{{ product.price.toLocaleString('ar-EG') }} ج.م</span>
         <span v-if="product.compareAtPrice" class="text-xs font-medium text-gray-400 line-through">
           {{ product.compareAtPrice.toLocaleString('ar-EG') }} ج.م
@@ -108,12 +108,14 @@ const wishlistStore = useWishlistStore()
       </div>
 
       <!-- Mobile Add to Cart -->
-      <button 
-        @click.prevent="shopStore.addToCart(product)"
-        class="mt-3 w-full py-2 border border-gray-900 text-gray-900 text-xs font-bold uppercase tracking-widest flex items-center justify-center hover:bg-gray-900 hover:text-white transition-colors duration-300 md:hidden font-arabic"
-      >
-        إضافة
-      </button>
+      <div class="mt-auto pt-3 w-full md:hidden">
+        <button 
+          @click.prevent="shopStore.addToCart(product)"
+          class="w-full py-2 border border-gray-900 text-gray-900 text-xs font-bold uppercase tracking-widest flex items-center justify-center hover:bg-gray-900 hover:text-white transition-colors duration-300 font-arabic"
+        >
+          إضافة
+        </button>
+      </div>
     </div>
   </div>
 </template>

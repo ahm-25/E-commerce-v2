@@ -35,10 +35,10 @@ const scroll = (direction: 'left' | 'right') => {
 </script>
 
 <template>
-  <section class="py-20 md:py-32 relative bg-surface">
+  <section class="py-12 md:py-32 relative bg-surface">
     <!-- Subtle background pattern or blob if needed (keeping it clean for now) -->
     <div class="container mx-auto px-4 lg:px-8 relative z-10">
-      <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
+      <div class="flex flex-col items-start md:flex-row md:items-end justify-between gap-6 mb-8 md:mb-16">
         <div class="max-w-2xl relative">
           <!-- Decorative element behind title -->
           <div class="absolute -top-6 -right-6 w-12 h-12 bg-primary/10 rounded-full blur-xl pointer-events-none"></div>
@@ -71,13 +71,14 @@ const scroll = (direction: 'left' | 'right') => {
         
         <div 
           ref="scrollContainer"
-          class="flex gap-6 md:gap-8 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-12 pt-4"
+          class="flex items-stretch gap-4 sm:gap-6 md:gap-8 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-8 md:pb-12 pt-4"
           style="scrollbar-width: none; -ms-overflow-style: none;"
         >
           <StorefrontProductCard 
             v-for="product in products" 
             :key="product.id" 
             :product="product" 
+            class="w-[200px] sm:w-[240px] md:w-[280px] flex-shrink-0 snap-start"
           />
         </div>
       </div>
