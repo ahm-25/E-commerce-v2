@@ -30,5 +30,10 @@ export default defineNuxtConfig({
       }
     }
   },
-  css: ['~/assets/css/main.css']
+  css: ['~/assets/css/main.css'],
+  runtimeConfig: {
+    // Store data (coupons, shipping, payments, orders) lives in the dashboard; proxied by
+    // server/routes/store-api. Override at runtime with NUXT_DASHBOARD_URL.
+    dashboardUrl: 'http://localhost:3001'
+  }
 })

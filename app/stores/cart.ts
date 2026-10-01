@@ -1,12 +1,16 @@
-import { defineStore } from 'pinia'
+import { defineStore, skipHydrate } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import type { CartItem, Coupon, CartState } from '~/types'
+import { storeApi } from '~/services/storeApi'
+import { useAuthStore } from '~/stores/auth'
 
 export const useCartStore = defineStore('cart', () => {
   const items = ref<CartItem[]>([])
   const loading = ref<boolean>(false)
   const error = ref<string | null>(null)
   const coupon = ref<Coupon | null>(null)
+  const couponError = ref<string | null>(null)
+  const couponLoading = ref(false)
   const shippingCost = ref<number>(0)
   const taxRate = ref<number>(0.14) // 14% VAT example
 
@@ -21,9 +25,7 @@ export const useCartStore = defineStore('cart', () => {
 
   const discountAmount = computed(() => {
     if (!coupon.value) return 0
-    if (coupon.value.discountAmount) return coupon.value.discountAmount
-    if (coupon.value.discountPercentage) return subtotal.value * (coupon.value.discountPercentage / 100)
-    return 0
+    return Math.min(coupon.value.discountAmount, subtotal.value)
   })
 
   const subtotalAfterDiscount = computed(() => {
@@ -34,8 +36,13 @@ export const useCartStore = defineStore('cart', () => {
     return subtotalAfterDiscount.value * taxRate.value
   })
 
+  // shippingCost is the selected method's price; a free-shipping coupon zeroes what's charged
+  const shippingTotal = computed(() => {
+    return coupon.value?.freeShipping ? 0 : shippingCost.value
+  })
+
   const grandTotal = computed(() => {
-    return subtotalAfterDiscount.value + taxAmount.value + shippingCost.value
+    return subtotalAfterDiscount.value + taxAmount.value + shippingTotal.value
   })
   
   const hasItems = computed(() => items.value.length > 0)
@@ -70,12 +77,47 @@ export const useCartStore = defineStore('cart', () => {
     coupon.value = null
   }
 
-  function applyCoupon(newCoupon: Coupon) {
-    coupon.value = newCoupon
+  // Validates the code against the discounts managed in the dashboard
+  function validateCoupon(code: string) {
+    return storeApi.validateCoupon({
+      code,
+      items: items.value.map(i => ({ productId: i.productId, price: i.price, quantity: i.quantity })),
+      customerId: useAuthStore().user?.id ?? null
+    })
+  }
+
+  async function applyCoupon(code: string) {
+    couponLoading.value = true
+    couponError.value = null
+    try {
+      coupon.value = await validateCoupon(code)
+      return true
+    } catch (err: any) {
+      couponError.value = storeApiError(err, 'حدث خطأ أثناء تطبيق كود الخصم')
+      return false
+    } finally {
+      couponLoading.value = false
+    }
   }
 
   function removeCoupon() {
     coupon.value = null
+    couponError.value = null
+  }
+
+  // Re-check the applied coupon whenever the cart changes (amount, min order, scope...)
+  async function refreshCoupon() {
+    if (!coupon.value) return
+    if (items.value.length === 0) return removeCoupon()
+    try {
+      coupon.value = await validateCoupon(coupon.value.code)
+    } catch (err: any) {
+      // Drop it only when the API rejected the coupon, not on a network hiccup
+      if (err?.statusCode === 422) {
+        coupon.value = null
+        couponError.value = storeApiError(err, 'لم يعد كود الخصم صالحاً')
+      }
+    }
   }
 
   // Watch for changes to persist
@@ -101,14 +143,30 @@ export const useCartStore = defineStore('cart', () => {
         console.error('Failed to parse cart storage', e)
       }
     }
+
+    // A saved coupon may have expired or been disabled since
+    refreshCoupon()
+
+    let refreshTimer: ReturnType<typeof setTimeout> | undefined
+    watch(
+      () => items.value.map(i => `${i.productId}:${i.price}:${i.quantity}`).join('|'),
+      () => {
+        clearTimeout(refreshTimer)
+        refreshTimer = setTimeout(refreshCoupon, 400)
+      }
+    )
   }
 
   return {
-    items,
+    // Restored from localStorage on the client: don't let the (empty) server state overwrite them
+    items: skipHydrate(items),
     loading,
     error,
-    coupon,
+    coupon: skipHydrate(coupon),
+    couponError,
+    couponLoading,
     shippingCost,
+    shippingTotal,
     taxRate,
     cartCount,
     subtotal,
@@ -123,6 +181,7 @@ export const useCartStore = defineStore('cart', () => {
     updateQuantity,
     clearCart,
     applyCoupon,
-    removeCoupon
+    removeCoupon,
+    refreshCoupon
   }
 })

@@ -2,6 +2,11 @@ import { defineStore } from 'pinia';
 import type { User, LoginPayload, RegisterPayload } from '~/types/auth';
 import { authService } from '~/services/authService';
 import { useShopStore } from '~/stores/useStore';
+import { useAccountStore } from '~/stores/account';
+
+const TOKEN_COOKIE = 'auth_token';
+const USER_COOKIE = 'auth_user';
+const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 days (with "remember me")
 
 interface AuthState {
   user: User | null;
@@ -21,6 +26,29 @@ export const useAuthStore = defineStore('auth', {
     isAuthenticated: (state) => !!state.accessToken && !!state.user,
   },
   actions: {
+    // Rehydrate the session from cookies (runs on server and client via middleware)
+    restoreSession() {
+      if (this.accessToken && this.user) return;
+      const token = useCookie<string | null>(TOKEN_COOKIE);
+      const user = useCookie<User | null>(USER_COOKIE);
+      if (token.value && user.value) {
+        this.accessToken = token.value;
+        this.user = user.value;
+      }
+    },
+    setSession(user: User, accessToken: string, remember = true) {
+      this.user = user;
+      this.accessToken = accessToken;
+      const maxAge = remember ? SESSION_MAX_AGE : undefined;
+      useCookie<string | null>(TOKEN_COOKIE, { maxAge, sameSite: 'lax' }).value = accessToken;
+      useCookie<User | null>(USER_COOKIE, { maxAge, sameSite: 'lax' }).value = user;
+    },
+    clearSession() {
+      this.user = null;
+      this.accessToken = null;
+      useCookie(TOKEN_COOKIE).value = null;
+      useCookie(USER_COOKIE).value = null;
+    },
     setLoading(value: boolean) {
       this.loading = value;
     },
@@ -32,8 +60,7 @@ export const useAuthStore = defineStore('auth', {
       this.setError(null);
       try {
         const response = await authService.login(payload);
-        this.user = response.user;
-        this.accessToken = response.accessToken;
+        this.setSession(response.user, response.accessToken, payload.rememberMe ?? false);
         
         const mainStore = useShopStore();
         if (mainStore.mergeCart) {
@@ -53,8 +80,7 @@ export const useAuthStore = defineStore('auth', {
       this.setError(null);
       try {
         const response = await authService.register(payload);
-        this.user = response.user;
-        this.accessToken = response.accessToken;
+        this.setSession(response.user, response.accessToken);
         return true;
       } catch (err: any) {
         this.setError(err.message || 'حدث خطأ أثناء إنشاء الحساب');
@@ -68,8 +94,7 @@ export const useAuthStore = defineStore('auth', {
       this.setError(null);
       try {
         const response = await authService.loginWithGoogle();
-        this.user = response.user;
-        this.accessToken = response.accessToken;
+        this.setSession(response.user, response.accessToken);
         
         const mainStore = useShopStore();
         if (mainStore.mergeCart) {
@@ -88,11 +113,12 @@ export const useAuthStore = defineStore('auth', {
       this.setLoading(true);
       try {
         await authService.logout();
-        this.user = null;
-        this.accessToken = null;
       } catch (err: any) {
         console.error(err);
       } finally {
+        // Always drop the local session, even if the API call failed
+        this.clearSession();
+        useAccountStore().$reset();
         this.setLoading(false);
       }
     },

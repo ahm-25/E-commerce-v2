@@ -13,19 +13,10 @@ useHead({
   title: 'المفضلة | حسابي'
 })
 
-import { useRouter } from 'vue-router'
-import { useAccountStore } from '~/stores/account'
 
-const router = useRouter()
-const accountStore = useAccountStore()
 const wishlistStore = useWishlistStore()
 
 onMounted(() => {
-  if (!accountStore.isLoggedIn) {
-    router.push('/auth/login')
-    return
-  }
-
   // Load products details on mount
   if (wishlistStore.itemsCount > 0) {
     wishlistStore.loadWishlist()

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { useAccountStore } from '~/stores/account'
 import { useAddressesStore } from '~/stores/addresses'
 import type { AddressFormData, Address } from '~/types'
@@ -11,7 +10,6 @@ import AddressGrid from '~/components/account/AddressGrid.vue'
 import AddressModal from '~/components/account/AddressModal.vue'
 import DeleteAddressDialog from '~/components/account/DeleteAddressDialog.vue'
 
-const router = useRouter()
 const accountStore = useAccountStore()
 const addressesStore = useAddressesStore()
 
@@ -25,11 +23,6 @@ const addressToDelete = ref<string | null>(null)
 
 // Auth Check & Fetch
 onMounted(async () => {
-  if (!accountStore.isLoggedIn) {
-    router.push('/auth/login')
-    return
-  }
-  
   await addressesStore.fetchAddresses()
 })
 

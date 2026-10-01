@@ -12,7 +12,6 @@ import ShippingInfo from '~/components/orders/ShippingInfo.vue'
 
 definePageMeta({
   layout: 'default',
-  // middleware: ['auth'] // Uncomment when auth middleware is ready
 })
 
 const route = useRoute()

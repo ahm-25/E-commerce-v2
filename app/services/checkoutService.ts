@@ -1,17 +1,8 @@
 import type { ShippingMethod, PaymentMethod } from '~/types'
+import { storeApi, type PlaceOrderPayload } from '~/services/storeApi'
 
-// Mock Data for Governorates and Cities
-export const GOVERNORATES = [
-  'القاهرة',
-  'الجيزة',
-  'الإسكندرية',
-  'الدقهلية',
-  'البحر الأحمر',
-  'الغربية',
-  'الشرقية',
-  'أسيوط'
-]
-
+// Mock cities (the dashboard only manages governorates). Governorates missing
+// here fall back to a free-text city field in the checkout form.
 export const CITIES: Record<string, string[]> = {
   'القاهرة': ['مدينة نصر', 'مصر الجديدة', 'المعادي', 'التجمع الخامس', 'شبرا'],
   'الجيزة': ['الدقي', 'المهندسين', 'الهرم', 'فيصل', 'الشيخ زايد', '6 أكتوبر'],
@@ -23,73 +14,32 @@ export const CITIES: Record<string, string[]> = {
   'أسيوط': ['أسيوط', 'ديروط', 'منفلوط']
 }
 
-const mockShippingMethods: ShippingMethod[] = [
-  {
-    id: 'standard',
-    name: 'شحن عادي',
-    duration: 'خلال 3 إلى 5 أيام عمل',
-    cost: 50
-  },
-  {
-    id: 'express',
-    name: 'شحن سريع',
-    duration: 'خلال 1 إلى 2 يوم عمل',
-    cost: 100
-  },
-  {
-    id: 'premium',
-    name: 'شحن مميز',
-    duration: 'خلال 24 ساعة',
-    cost: 150
-  }
-]
-
-const mockPaymentMethods: PaymentMethod[] = [
-  {
-    id: 'cod',
-    name: 'الدفع عند الاستلام',
-    description: 'ادفع نقداً عند استلام طلبك',
-    icon: 'Banknote'
-  },
-  {
-    id: 'card',
-    name: 'بطاقة بنكية',
-    description: 'Visa / Mastercard',
-    icon: 'CreditCard'
-  },
-  {
-    id: 'wallet',
-    name: 'محفظة إلكترونية',
-    description: 'فودافون كاش - أورانج كاش',
-    icon: 'Wallet'
-  }
-]
-
 export const checkoutService = {
+  // Governorates covered by an active shipping zone in the dashboard
   async getGovernorates(): Promise<string[]> {
-    return new Promise(resolve => setTimeout(() => resolve(GOVERNORATES), 300))
+    return storeApi.getGovernorates()
   },
 
   async getCities(governorate: string): Promise<string[]> {
     return new Promise(resolve => setTimeout(() => resolve(CITIES[governorate] || []), 300))
   },
 
-  async getShippingMethods(governorate: string): Promise<ShippingMethod[]> {
-    // In a real app, available shipping methods and costs might depend on the governorate
-    return new Promise(resolve => setTimeout(() => resolve(mockShippingMethods), 400))
+  // Rates of the zone covering the governorate (free-shipping thresholds depend on the subtotal)
+  async getShippingMethods(governorate: string, subtotal: number, itemsCount: number): Promise<ShippingMethod[]> {
+    return storeApi.getShippingOptions({ governorate, subtotal, itemsCount })
   },
 
+  // Active methods only, ordered as in the dashboard
   async getPaymentMethods(): Promise<PaymentMethod[]> {
-    return new Promise(resolve => setTimeout(() => resolve(mockPaymentMethods), 300))
+    return storeApi.getPaymentMethods()
   },
   
-  async createOrder(orderData: any): Promise<{ success: boolean, orderId?: string, error?: string }> {
-    return new Promise(resolve => {
-      setTimeout(() => {
-        // Simulate a successful order creation
-        const orderId = `ORD-${Math.floor(Math.random() * 1000000)}`
-        resolve({ success: true, orderId })
-      }, 1500)
-    })
+  async createOrder(payload: PlaceOrderPayload): Promise<{ success: boolean, orderId?: string, error?: string }> {
+    try {
+      const order = await storeApi.placeOrder(payload)
+      return { success: true, orderId: order.id }
+    } catch (err: any) {
+      return { success: false, error: storeApiError(err, 'حدث خطأ أثناء إنشاء الطلب') }
+    }
   }
 }

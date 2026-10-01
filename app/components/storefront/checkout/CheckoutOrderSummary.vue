@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ShoppingCart, Edit2, ShieldCheck, RefreshCcw, Truck, Award } from 'lucide-vue-next'
 import { useCartStore } from '~/stores/cart'
+import { useCheckoutStore } from '~/stores/checkout'
 import CouponInput from '~/components/storefront/CouponInput.vue'
 
 const cartStore = useCartStore()
+const checkoutStore = useCheckoutStore()
 </script>
 
 <template>
@@ -78,7 +80,9 @@ const cartStore = useCartStore()
       
       <div class="flex items-center justify-between text-sm">
         <span class="text-gray-500 font-medium">الشحن</span>
-        <span class="font-bold text-gray-900">{{ cartStore.shippingCost > 0 ? cartStore.shippingCost.toLocaleString('ar-EG') + ' ج.م' : 'اختر طريقة الشحن' }}</span>
+        <span v-if="!checkoutStore.shippingMethodId" class="font-bold text-gray-900">اختر طريقة الشحن</span>
+        <span v-else-if="cartStore.shippingTotal === 0" class="font-bold text-green-600">مجاني</span>
+        <span v-else class="font-bold text-gray-900">{{ cartStore.shippingTotal.toLocaleString('ar-EG') }} ج.م</span>
       </div>
       
       <div v-if="cartStore.taxAmount > 0" class="flex items-center justify-between text-sm">

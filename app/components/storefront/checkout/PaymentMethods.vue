@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useCheckoutStore } from '~/stores/checkout'
 import { useCheckout } from '~/composables/useCheckout'
-import { CreditCard, Banknote, Wallet, ShieldCheck } from 'lucide-vue-next'
+import { CreditCard, Banknote, Wallet, Landmark, ShieldCheck } from 'lucide-vue-next'
 import { computed } from 'vue'
 
 const store = useCheckoutStore()
@@ -11,7 +11,8 @@ const { paymentMethods, isLoadingPayment } = useCheckout()
 const iconMap: Record<string, any> = {
   'Banknote': Banknote,
   'CreditCard': CreditCard,
-  'Wallet': Wallet
+  'Wallet': Wallet,
+  'Landmark': Landmark
 }
 
 const getIcon = (iconName: string) => {

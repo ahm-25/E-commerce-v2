@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuth } from '~/composables/useAuth'
 
 definePageMeta({
@@ -8,6 +8,8 @@ definePageMeta({
 })
 
 const router = useRouter()
+const route = useRoute()
+const redirectTo = computed(() => safeRedirect(route.query.redirect))
 const { login, loginWithGoogle, loading, error, clearError } = useAuth()
 
 const identifier = ref('')
@@ -25,7 +27,7 @@ const handleLogin = async () => {
   })
 
   if (success) {
-    router.push('/')
+    router.push(redirectTo.value)
   }
 }
 
@@ -33,7 +35,7 @@ const handleGoogleLogin = async () => {
   clearError()
   const success = await loginWithGoogle()
   if (success) {
-    router.push('/')
+    router.push(redirectTo.value)
   }
 }
 </script>

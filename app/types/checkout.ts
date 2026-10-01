@@ -29,6 +29,7 @@ export interface PaymentMethod {
   name: string
   description: string
   icon: string // Lucide icon name or image url
+  isDefault?: boolean
 }
 
 export interface CheckoutState {

@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Search, ShoppingCart, Heart, User, Sun, Moon, Menu, X, ArrowUpLeft } from 'lucide-vue-next'
 import { useShopStore } from '~/stores/useStore'
+import { useAuthStore } from '~/stores/auth'
 import { useCart } from '~/composables/useCart'
 import { onClickOutside } from '@vueuse/core'
 import { useSearchSuggestions } from '~/composables/useSearchSuggestions'
@@ -10,6 +11,7 @@ import MobileSearchPanel from './MobileSearchPanel.vue'
 
 const colorMode = useColorMode()
 const shopStore = useShopStore()
+const authStore = useAuthStore()
 const { cartCount } = useCart()
 const router = useRouter()
 const route = useRoute()
@@ -221,7 +223,7 @@ onUnmounted(() => {
               <Sun v-if="colorMode.value === 'dark'" class="w-5 h-5 text-text-secondary hover:text-primary" />
               <Moon v-else class="w-5 h-5 text-text-secondary hover:text-primary" />
             </button>
-            <NuxtLink to="/auth/login" class="hidden sm:block p-2 hover:bg-background rounded-full transition-colors" aria-label="User Account">
+            <NuxtLink :to="authStore.isAuthenticated ? '/account' : '/auth/login'" class="hidden sm:block p-2 hover:bg-background rounded-full transition-colors" aria-label="User Account">
               <User class="w-5 h-5 text-text-secondary hover:text-primary" />
             </NuxtLink>
             <NuxtLink to="/account/wishlist" class="hidden sm:block p-2 hover:bg-background rounded-full transition-colors" aria-label="Wishlist">

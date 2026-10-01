@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { Order, OrderStatus } from '~/types/order'
-import { mockOrders } from '~/data/mock-order'
+import { storeApi } from '~/services/storeApi'
+import { useAuthStore } from '~/stores/auth'
 
 export const useOrdersStore = defineStore('orders', () => {
   const currentOrder = ref<Order | null>(null)
@@ -27,20 +28,39 @@ export const useOrdersStore = defineStore('orders', () => {
     cancelled: 0
   })
 
-  // Create a slightly larger mock data set to test search, filters, pagination
-  const extendedMockOrders = [
-    ...mockOrders, 
-    ...mockOrders.map(o => ({...o, id: o.id + '_2', orderNumber: o.orderNumber + '-2', status: 'cancelled' as OrderStatus})),
-    ...mockOrders.map(o => ({...o, id: o.id + '_3', orderNumber: o.orderNumber + '-3', status: 'shipped' as OrderStatus, total: o.total + 500})),
-  ]
+  // The signed-in customer's orders (from the dashboard API); list filtering happens locally
+  const allOrders = ref<Order[]>([])
+  let inflight: Promise<void> | null = null
+
+  const loadCustomerOrders = (force = false) => {
+    if (inflight) return inflight
+    if (!force && allOrders.value.length > 0) return Promise.resolve()
+    const customerId = useAuthStore().user?.id
+    if (!customerId) {
+      allOrders.value = []
+      return Promise.resolve()
+    }
+    inflight = storeApi.getCustomerOrders(customerId)
+      .then(list => { allOrders.value = list })
+      .finally(() => { inflight = null })
+    return inflight
+  }
+
+  const computeSummary = () => {
+    summary.value = {
+      total: allOrders.value.length,
+      processing: allOrders.value.filter(o => ['pending', 'confirmed', 'processing'].includes(o.status)).length,
+      delivered: allOrders.value.filter(o => o.status === 'delivered').length,
+      cancelled: allOrders.value.filter(o => o.status === 'cancelled').length,
+    }
+  }
 
   const fetchOrderSummary = async () => {
-    // Mock API Call
-    summary.value = {
-      total: extendedMockOrders.length,
-      processing: extendedMockOrders.filter(o => ['pending', 'confirmed', 'processing'].includes(o.status)).length,
-      delivered: extendedMockOrders.filter(o => o.status === 'delivered').length,
-      cancelled: extendedMockOrders.filter(o => o.status === 'cancelled').length,
+    try {
+      await loadCustomerOrders()
+      computeSummary()
+    } catch (e: any) {
+      error.value = storeApiError(e, 'حدث خطأ أثناء تحميل الطلبات')
     }
   }
 
@@ -55,9 +75,11 @@ export const useOrdersStore = defineStore('orders', () => {
     error.value = null
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 800))
-      
-      let filtered = [...extendedMockOrders]
+      // A fresh list on reset (filters changed / page opened), cached for "load more"
+      await loadCustomerOrders(reset)
+      computeSummary()
+
+      let filtered = [...allOrders.value]
       
       // Search
       if (search.value) {
@@ -98,7 +120,7 @@ export const useOrdersStore = defineStore('orders', () => {
       }
       
     } catch (e: any) {
-      error.value = e.message || 'حدث خطأ أثناء تحميل الطلبات'
+      error.value = storeApiError(e, 'حدث خطأ أثناء تحميل الطلبات')
     } finally {
       isLoading.value = false
       isLoadingMore.value = false
@@ -121,12 +143,12 @@ export const useOrdersStore = defineStore('orders', () => {
     error.value = null
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      const order = extendedMockOrders.find(o => o.orderNumber === id || o.id === id)
+      // Looked up in the customer's own orders, so other customers' orders are never shown
+      await loadCustomerOrders(true)
+      const order = allOrders.value.find(o => o.id === id || o.orderNumber === id)
       
       if (!order) {
-        throw new Error('Order not found')
+        throw new Error('الطلب غير موجود')
       }
       
       currentOrder.value = order
@@ -144,30 +166,19 @@ export const useOrdersStore = defineStore('orders', () => {
     isLoading.value = true
     error.value = null
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // Update in orders list
-      const orderInList = orders.value.find(o => o.id === id || o.orderNumber === id)
-      if (orderInList) {
-        orderInList.status = 'cancelled'
-      }
-      
-      if (currentOrder.value && (currentOrder.value.id === id || currentOrder.value.orderNumber === id)) {
-        currentOrder.value.status = 'cancelled'
-        if (currentOrder.value.timeline) {
-          currentOrder.value.timeline.push({
-            status: 'cancelled',
-            title: 'تم إلغاء الطلب',
-            date: new Date().toLocaleDateString('ar-EG', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-            isCompleted: true,
-            isCurrent: true
-          })
-        }
-      }
-      
-      await fetchOrderSummary() // update summary
+      const customerId = useAuthStore().user?.id
+      const target = allOrders.value.find(o => o.id === id || o.orderNumber === id)
+      if (!customerId || !target) throw new Error('الطلب غير موجود')
+
+      const updated = await storeApi.cancelOrder(target.id, customerId)
+      const replace = (list: Order[]) => list.map(o => (o.id === updated.id ? updated : o))
+      allOrders.value = replace(allOrders.value)
+      orders.value = replace(orders.value)
+      if (currentOrder.value?.id === updated.id) currentOrder.value = updated
+
+      computeSummary()
     } catch (e: any) {
-      error.value = 'حدث خطأ أثناء إلغاء الطلب'
+      error.value = storeApiError(e, 'حدث خطأ أثناء إلغاء الطلب')
     } finally {
       isLoading.value = false
     }

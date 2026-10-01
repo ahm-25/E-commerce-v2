@@ -34,9 +34,8 @@ const isActive = (path: string) => {
   return route.path.startsWith(path)
 }
 
-const handleLogout = () => {
-  accountStore.logout()
-  // In a real app, redirect to login or home
+const handleLogout = async () => {
+  await accountStore.logout()
   navigateTo('/')
 }
 </script>

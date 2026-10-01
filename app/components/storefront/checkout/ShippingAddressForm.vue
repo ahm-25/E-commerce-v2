@@ -40,12 +40,23 @@ const { governorates, cities, isLoadingGovernorates, isLoadingCities } = useChec
           </div>
         </div>
         <p v-if="store.validationErrors.governorate" class="text-xs font-bold text-rose-500 mt-1">{{ store.validationErrors.governorate }}</p>
+        <p v-else-if="!isLoadingGovernorates && governorates.length === 0" class="text-xs font-bold text-amber-600 mt-1">التوصيل غير متاح حالياً، يرجى المحاولة لاحقاً.</p>
       </div>
 
       <!-- City -->
       <div class="space-y-2">
         <label for="city" class="block text-sm font-bold text-gray-700">المدينة <span class="text-rose-500">*</span></label>
-        <div class="relative">
+        <!-- No predefined cities for this governorate: let the customer type it -->
+        <input
+          v-if="store.shippingAddress.governorate && !isLoadingCities && cities.length === 0"
+          id="city"
+          v-model="store.shippingAddress.city"
+          type="text"
+          placeholder="اكتب اسم المدينة"
+          class="w-full px-4 py-3.5 bg-background border rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:border-transparent"
+          :class="store.validationErrors.city ? 'border-rose-500 ring-rose-100 focus:ring-rose-500/20' : 'border-border focus:ring-primary/20 focus:border-primary'"
+        >
+        <div v-else class="relative">
           <select 
             id="city" 
             v-model="store.shippingAddress.city"

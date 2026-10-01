@@ -15,6 +15,8 @@ export function useCart() {
     taxAmount, 
     grandTotal, 
     shippingCost,
+    shippingTotal,
+    coupon,
     hasItems
   } = storeToRefs(store)
 
@@ -89,6 +91,8 @@ export function useCart() {
     taxAmount,
     grandTotal,
     shippingCost,
+    shippingTotal,
+    coupon,
     hasItems,
     addToCart,
     updateCartItem,

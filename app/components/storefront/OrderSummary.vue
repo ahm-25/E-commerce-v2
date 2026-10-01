@@ -10,7 +10,8 @@ const {
   subtotalAfterDiscount, 
   taxAmount, 
   grandTotal, 
-  shippingCost 
+  shippingTotal,
+  coupon
 } = useCart()
 
 const emit = defineEmits<{
@@ -37,8 +38,9 @@ const emit = defineEmits<{
 
       <div class="flex justify-between items-center text-gray-600">
         <span>الشحن</span>
-        <span v-if="shippingCost === 0" class="text-green-600 font-medium">مجاني</span>
-        <span v-else class="font-bold text-gray-900">{{ shippingCost.toLocaleString() }} ج.م</span>
+        <span v-if="coupon?.freeShipping" class="text-green-600 font-medium">مجاني</span>
+        <span v-else-if="shippingTotal === 0" class="text-gray-500 font-medium">يُحدد عند إتمام الطلب</span>
+        <span v-else class="font-bold text-gray-900">{{ shippingTotal.toLocaleString() }} ج.م</span>
       </div>
 
       <div class="flex justify-between items-center text-gray-600">

@@ -15,13 +15,9 @@ export function useOrderConfirmation() {
     error.value = null
     
     try {
-      const [orderData, timelineData] = await Promise.all([
-        orderService.getOrder(orderId),
-        orderService.trackOrder(orderId)
-      ])
-      
+      const orderData = await orderService.getOrder(orderId)
       order.value = orderData
-      timeline.value = timelineData
+      timeline.value = orderService.trackOrder(orderData)
     } catch (e: any) {
       error.value = e.message || 'حدث خطأ أثناء تحميل بيانات الطلب'
       order.value = null

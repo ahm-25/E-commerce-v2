@@ -13,10 +13,13 @@ export interface CartItem {
   isAvailable: boolean
 }
 
+// Coupon as validated by the store API (amount is computed server-side for the current cart)
 export interface Coupon {
   code: string
-  discountPercentage?: number
-  discountAmount?: number
+  name: string
+  type: 'percentage' | 'fixed' | 'free_shipping'
+  discountAmount: number
+  freeShipping: boolean
 }
 
 export interface CartTotals {

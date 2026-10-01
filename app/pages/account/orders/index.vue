@@ -44,11 +44,6 @@ watch([() => ordersStore.search, () => ordersStore.filters.status, () => ordersS
 }, { deep: true })
 
 onMounted(async () => {
-  if (!accountStore.isLoggedIn) {
-    router.push('/auth/login')
-    return
-  }
-  
   syncUrlToStore()
   await Promise.all([
     ordersStore.fetchOrderSummary(),
@@ -56,11 +51,6 @@ onMounted(async () => {
   ])
 })
 
-watch(() => accountStore.isLoggedIn, (newVal) => {
-  if (!newVal) {
-    router.push('/auth/login')
-  }
-})
 
 const handleReorder = async (id: string) => {
   await ordersStore.reorder(id)

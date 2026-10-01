@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { onMounted } from 'vue'
 import { useAccountStore } from '~/stores/account'
 import { ChevronLeft } from 'lucide-vue-next'
 import AccountSidebar from '~/components/account/AccountSidebar.vue'
@@ -11,27 +10,15 @@ import SavedAddresses from '~/components/account/SavedAddresses.vue'
 import WishlistPreview from '~/components/account/WishlistPreview.vue'
 import AccountPromoCard from '~/components/account/AccountPromoCard.vue'
 
-const router = useRouter()
 const accountStore = useAccountStore()
 
-// Initialize data and check auth
+// Initialize data (auth is enforced by middleware/auth.global.ts)
 onMounted(() => {
-  if (!accountStore.isLoggedIn) {
-    router.push('/auth/login')
-    return
-  }
-  
   if (!accountStore.profile) {
     accountStore.fetchDashboardData()
   }
 })
 
-// Watch auth state
-watch(() => accountStore.isLoggedIn, (newVal) => {
-  if (!newVal) {
-    router.push('/auth/login')
-  }
-})
 
 useHead({
   title: 'حسابي | Nexora',

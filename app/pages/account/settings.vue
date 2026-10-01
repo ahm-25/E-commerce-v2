@@ -46,13 +46,8 @@ const isDeactivateDialogOpen = ref(false)
 const isDeactivating = ref(false)
 const deactivateError = ref('')
 
-// Initialize data and check auth
+// Initialize data (auth is enforced by middleware/auth.global.ts)
 onMounted(async () => {
-  if (!accountStore.isLoggedIn) {
-    router.push('/auth/login')
-    return
-  }
-  
   await settingsStore.fetchSettings()
   
   if (settingsStore.settings) {
@@ -60,12 +55,6 @@ onMounted(async () => {
   }
 })
 
-// Watch auth state
-watch(() => accountStore.isLoggedIn, (newVal) => {
-  if (!newVal) {
-    router.push('/auth/login')
-  }
-})
 
 // Check if form is dirty
 watch(localSettings, () => {
@@ -124,7 +113,7 @@ const deactivateAccount = async () => {
     // TODO: Implement actual API call
     await new Promise(resolve => setTimeout(resolve, 1500))
     isDeactivateDialogOpen.value = false
-    accountStore.logout()
+    await accountStore.logout()
     router.push('/')
   } catch (err: any) {
     deactivateError.value = err.message || 'حدث خطأ أثناء تعطيل الحساب'
@@ -145,7 +134,7 @@ const deleteAccount = async () => {
     // TODO: Implement actual API call
     await new Promise(resolve => setTimeout(resolve, 1500))
     isDeleteDialogOpen.value = false
-    accountStore.logout()
+    await accountStore.logout()
     router.push('/')
   } catch (err: any) {
     deleteError.value = err.message || 'حدث خطأ أثناء حذف الحساب'

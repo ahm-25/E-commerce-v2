@@ -12,52 +12,22 @@ import CartSkeleton from '~/components/storefront/CartSkeleton.vue'
 import ConfirmationDialog from '~/components/storefront/ConfirmationDialog.vue'
 import PromotionalBanner from '~/components/storefront/PromotionalBanner.vue'
 
-// Mock Data import for initial load (optional, to see some items if cart is empty initially)
+// Mock data for the promotional banner
 import { useMockData } from '~/composables/useMockData'
 
 const router = useRouter()
-const { items, loading, hasItems, updateCartItem, removeFromCart, clearCart, addToCart } = useCart()
+const { items, loading, hasItems, updateCartItem, removeFromCart, clearCart } = useCart()
 const { mockData } = useMockData()
 
 // Dialog State
 const isClearCartDialogOpen = ref(false)
 const isInitialLoading = ref(true)
 
-// Add some mock items if cart is empty on mount just to showcase the design
-onMounted(async () => {
-  // Simulate initial load
-  setTimeout(async () => {
+onMounted(() => {
+  // Short skeleton while the cart is restored from localStorage
+  setTimeout(() => {
     isInitialLoading.value = false
-    
-    // Add mock items if cart is empty (For presentation purposes)
-    if (!hasItems.value) {
-      await addToCart({
-        id: '1',
-        productId: 'p-1',
-        slug: 'elegant-leather-bag',
-        name: 'حقيبة يد جلدية فاخرة',
-        image: 'https://images.unsplash.com/photo-1584916201218-f4242ceb4809?q=80&w=2030&auto=format&fit=crop',
-        price: 2499,
-        compareAtPrice: 3499,
-        quantity: 1,
-        color: 'بيج',
-        size: 'متوسط',
-        isAvailable: true
-      })
-      await addToCart({
-        id: '2',
-        productId: 'p-2',
-        slug: 'black-crossbody',
-        name: 'حقيبة كروس سوداء',
-        image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=2069&auto=format&fit=crop',
-        price: 1899,
-        quantity: 2,
-        color: 'أسود',
-        size: 'صغير',
-        isAvailable: true
-      })
-    }
-  }, 800)
+  }, 300)
 })
 
 const handleUpdateQuantity = (id: string, quantity: number) => {
