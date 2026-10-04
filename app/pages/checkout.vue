@@ -36,6 +36,11 @@ onMounted(async () => {
     return
   }
 
+  useTracking().beginCheckout(cartStore.items.map(i => ({
+    id: i.productId, name: i.name, price: i.price, quantity: i.quantity,
+    variant: [i.color, i.size].filter(Boolean).join(' / ') || undefined
+  })))
+
   // 2. Initialize checkout data
   try {
     await initCheckout()

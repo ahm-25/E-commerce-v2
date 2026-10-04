@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { storeApi } from '~/services/storeApi'
 import { useMockData } from '~/composables/useMockData'
@@ -47,6 +47,11 @@ watch(selectedVariant, () => {
   quantity.value = Math.min(Math.max(quantity.value, 1), Math.max(product.value.stock, 1))
 })
 
+// Pixel event for the product actually shown (client only)
+onMounted(() => {
+  useTracking().viewItem({ id: baseProduct.value.id, name: baseProduct.value.name, price: product.value.price, quantity: 1 })
+})
+
 const breadcrumbs = computed(() => {
   const items = [{ name: 'الرئيسية', url: '/' }]
   if (product.value.category) {
@@ -78,6 +83,7 @@ useHead({
         <StorefrontProductOptions 
           v-if="product.options && product.options.length"
           :options="product.options"
+          :variants="product.variants"
           v-model="selectedOptions"
         />
 
@@ -94,6 +100,13 @@ useHead({
             class="flex-grow"
           />
         </div>
+
+        <StorefrontProductOrderViaWhatsApp
+          v-if="product.stock > 0"
+          :product="product"
+          :quantity="quantity"
+          :options="selectedOptions"
+        />
 
         <StorefrontProductTrustFeatures />
       </div>

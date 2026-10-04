@@ -53,6 +53,24 @@ export interface ProductReview {
   avatar?: string
   rating: number
   date: string
+  title?: string
+  content: string
+  verified?: boolean // bought and received the product
+  reply?: { content: string, date: string } // the store's answer
+}
+
+export interface RatingBucket {
+  rating: number
+  count: number
+  percentage: number
+}
+
+export interface ReviewPayload {
+  customerId?: string | null
+  name: string
+  email?: string
+  rating: number
+  title?: string
   content: string
 }
 
@@ -72,6 +90,7 @@ export interface Product {
   options?: ProductOption[]
   specifications?: ProductSpecification[]
   reviews?: ProductReview[]
+  ratingDistribution?: RatingBucket[]
   stock: number
   isNew?: boolean
   badge?: string
@@ -152,3 +171,19 @@ export * from './order'
 export * from './account'
 export * from './wishlist'
 export * from './address'
+
+// WhatsApp button + pixel ids, managed from the dashboard (Marketing page)
+export interface StoreMarketing {
+  whatsapp: {
+    enabled: boolean
+    productButton: boolean
+    number: string // international, no "+": 201012345678
+    message: string
+  }
+  tracking: {
+    metaPixelId: string | null
+    tiktokPixelId: string | null
+    snapPixelId: string | null
+    ga4MeasurementId: string | null
+  }
+}

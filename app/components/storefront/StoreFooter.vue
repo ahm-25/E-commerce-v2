@@ -62,7 +62,7 @@ const scrollToTop = () => {
             خدمة العملاء
           </h4>
           <ul class="flex flex-col gap-4">
-            <li v-for="link in [{name: 'تواصل معنا', path: '/contact'}, {name: 'سياسة الشحن', path: '/shipping'}, {name: 'سياسة الاسترجاع', path: '/returns'}, {name: 'الأسئلة الشائعة', path: '/faq'}, {name: 'دليل المقاسات', path: '/size-guide'}]" :key="link.path">
+            <li v-for="link in [{name: 'تتبع طلبك', path: '/track-order'}, {name: 'تواصل معنا', path: '/contact'}, {name: 'سياسة الشحن', path: '/shipping'}, {name: 'سياسة الاسترجاع', path: '/returns'}, {name: 'الأسئلة الشائعة', path: '/faq'}, {name: 'دليل المقاسات', path: '/size-guide'}]" :key="link.path">
               <NuxtLink :to="link.path" class="text-gray-400 hover:text-white text-sm transition-colors">
                 {{ link.name }}
               </NuxtLink>

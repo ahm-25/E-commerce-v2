@@ -11,5 +11,6 @@ const { mockData } = useMockData()
       <slot />
     </main>
     <StorefrontStoreFooter :store="mockData.store" />
+    <StorefrontWhatsAppFloatingButton />
   </div>
 </template>

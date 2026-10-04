@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, computed } from 'vue'
+import { useAuthStore } from '~/stores/auth'
 import { useMockData } from '~/composables/useMockData'
 import { useRoute } from 'vue-router'
 import { useOrderConfirmation } from '~/composables/useOrderConfirmation'
@@ -22,6 +23,15 @@ const {
   downloadInvoice
 } = useOrderConfirmation()
 
+const auth = useAuthStore()
+
+// Signed-in customers have the order in their account; guests track it by number + phone
+const trackLink = computed(() => {
+  if (!order.value) return '/track-order'
+  if (auth.isAuthenticated) return `/account/orders/${order.value.id}`
+  return { path: '/track-order', query: { order: order.value.orderNumber.replace(/\D/g, ''), phone: order.value.customer.phone } }
+})
+
 const breadcrumbs = [
   { label: 'الرئيسية', to: '/' },
   { label: 'عربة التسوق', to: '/cart' },
@@ -29,9 +39,22 @@ const breadcrumbs = [
   { label: 'تأكيد الطلب', to: '#' }
 ]
 
-onMounted(() => {
-  if (orderId) {
-    fetchOrder(orderId)
+const tracking = useTracking()
+
+onMounted(async () => {
+  if (!orderId) return
+  await fetchOrder(orderId)
+  // Only right after checkout; an old confirmation link reopened weeks later isn't a new sale
+  const o = order.value
+  if (o && Date.now() - new Date(o.createdAt).getTime() < 24 * 3600_000) {
+    tracking.purchase({
+      id: o.id,
+      orderNumber: o.orderNumber,
+      total: o.total,
+      shipping: o.shippingCost,
+      tax: o.tax,
+      items: o.items.map(i => ({ id: i.productId, name: i.name, price: i.price, quantity: i.quantity, variant: [i.color, i.size].filter(Boolean).join(' / ') || undefined }))
+    })
   }
 })
 
@@ -73,7 +96,7 @@ useHead({
             <!-- Actions (Mobile & Desktop) -->
             <div class="flex flex-col sm:flex-row items-center gap-4 py-8 border-b border-gray-100 dark:border-gray-800">
               <NuxtLink 
-                :to="`/orders/${order.id}`"
+                :to="trackLink"
                 class="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-xl transition-colors"
               >
                 تتبع الطلب

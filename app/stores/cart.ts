@@ -53,6 +53,10 @@ export const useCartStore = defineStore('cart', () => {
   }
 
   function addItem(item: CartItem) {
+    useTracking().addToCart({
+      id: item.productId, name: item.name, price: item.price, quantity: item.quantity,
+      variant: [item.color, item.size].filter(Boolean).join(' / ') || undefined
+    })
     const existingItem = items.value.find(i => i.id === item.id)
     if (existingItem) {
       existingItem.quantity += item.quantity

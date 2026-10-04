@@ -3,6 +3,7 @@ import { useCheckoutStore } from '~/stores/checkout'
 import { useCartStore } from '~/stores/cart'
 import { useAuthStore } from '~/stores/auth'
 import { checkoutService } from '~/services/checkoutService'
+import { storeApi } from '~/services/storeApi'
 import type { ShippingMethod, PaymentMethod } from '~/types'
 import { useRouter } from 'vue-router'
 
@@ -10,6 +11,7 @@ export function useCheckout() {
   const checkoutStore = useCheckoutStore()
   const cartStore = useCartStore()
   const router = useRouter()
+  const cartToken = useCartToken()
 
   // Shared by every component that calls useCheckout() (page, address form, methods...)
   const governorates = useState<string[]>('checkout:governorates', () => [])
@@ -107,6 +109,35 @@ export function useCheckout() {
 
     // Update Cart Shipping Cost when shipping method changes
     watch(() => checkoutStore.shippingMethodId, syncShippingCost)
+
+    // Save the checkout once there's a valid phone, so the store can follow up if it's abandoned.
+    // Debounced, fire-and-forget: it must never slow down or block the checkout.
+    let saveTimer: ReturnType<typeof setTimeout> | undefined
+    watch(
+      () => [
+        checkoutStore.customerInfo.fullName, checkoutStore.customerInfo.phone, checkoutStore.customerInfo.email,
+        checkoutStore.shippingAddress.governorate,
+        cartStore.items.map(i => `${i.productId}:${i.variantId ?? ''}:${i.quantity}`).join('|')
+      ].join('~'),
+      () => {
+        clearTimeout(saveTimer)
+        saveTimer = setTimeout(saveCheckpoint, 1500)
+      },
+      { immediate: true }
+    )
+  }
+
+  const saveCheckpoint = () => {
+    const info = checkoutStore.customerInfo
+    const token = cartToken.get()
+    if (!token || !/^01[0125][0-9]{8}$/.test(info.phone.trim()) || cartStore.items.length === 0) return
+    storeApi.saveCartCheckpoint({
+      token,
+      customerId: useAuthStore().user?.id ?? null,
+      customer: { name: info.fullName.trim(), phone: info.phone.trim(), email: info.email.trim() || undefined },
+      governorate: checkoutStore.shippingAddress.governorate || undefined,
+      items: cartStore.items.map(i => ({ productId: i.productId, variantId: i.variantId ?? null, quantity: i.quantity }))
+    }).catch(() => {})
   }
 
   // Submit Order
@@ -124,6 +155,7 @@ export function useCheckout() {
       const address = checkoutStore.shippingAddress
       const response = await checkoutService.createOrder({
         customerId: useAuthStore().user?.id ?? null,
+        cartToken: cartToken.get(),
         customer: {
           name: checkoutStore.customerInfo.fullName,
           phone: checkoutStore.customerInfo.phone,
@@ -155,6 +187,7 @@ export function useCheckout() {
         // Clear cart after successful order
         cartStore.clearCart()
         checkoutStore.resetCheckout()
+        cartToken.reset()
         router.push(`/order-success/${response.orderId}`)
       } else {
         throw new Error(response.error || 'حدث خطأ أثناء إنشاء الطلب')

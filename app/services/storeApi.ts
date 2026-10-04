@@ -1,4 +1,4 @@
-import type { Coupon, ShippingMethod, PaymentMethod, Product, Category } from '~/types'
+import type { Coupon, ShippingMethod, PaymentMethod, Product, Category, ReviewPayload, StoreMarketing } from '~/types'
 import type { Order } from '~/types/order'
 
 // Store data managed from the dashboard (E-commerce-dashboard /api/storefront).
@@ -36,6 +36,7 @@ export interface ProductPage {
 
 export interface PlaceOrderPayload {
   customerId: string | null
+  cartToken?: string | null // marks the saved checkout as recovered
   customer: { name: string, phone: string, email?: string }
   shippingAddress: { governorate: string, city: string, region?: string, addressDetails: string }
   shippingMethodId: string
@@ -46,6 +47,32 @@ export interface PlaceOrderPayload {
   items: { productId: string, variantId?: string | null, quantity: number }[]
 }
 
+export interface CartCheckpoint {
+  token: string
+  customerId: string | null
+  customer: { name: string, phone: string, email?: string }
+  governorate?: string
+  items: { productId: string, variantId: string | null, quantity: number }[]
+}
+
+export interface SavedCart {
+  customer: { name: string, phone: string, email?: string }
+  governorate?: string
+  items: {
+    productId: string
+    variantId: string | null
+    slug: string
+    name: string
+    image: string
+    price: number
+    compareAtPrice?: number
+    color?: string
+    size?: string
+    quantity: number
+    inStock: boolean
+  }[]
+}
+
 // Arrays are sent comma-separated; empty values are dropped
 const toQuery = (q: ProductQuery) => Object.fromEntries(
   Object.entries(q)
@@ -54,6 +81,10 @@ const toQuery = (q: ProductQuery) => Object.fromEntries(
 )
 
 export const storeApi = {
+  getMarketing() {
+    return $fetch<StoreMarketing>(`${BASE}/marketing`)
+  },
+
   getCategories() {
     return $fetch<(Category & { productCount: number, description?: string })[]>(`${BASE}/categories`)
   },
@@ -64,6 +95,11 @@ export const storeApi = {
 
   getProduct(slug: string) {
     return $fetch<{ product: Product, related: Product[] }>(`${BASE}/products/${encodeURIComponent(slug)}`)
+  },
+
+  // Reviews are moderated: the new one shows on the product page once approved from the dashboard
+  submitReview(slug: string, body: ReviewPayload) {
+    return $fetch<{ id: string, status: 'pending' }>(`${BASE}/products/${encodeURIComponent(slug)}/reviews`, { method: 'POST', body })
   },
 
   validateCoupon(body: CouponRequest) {
@@ -85,6 +121,21 @@ export const storeApi = {
   // Totals are recomputed by the server; the returned order is the source of truth
   placeOrder(body: PlaceOrderPayload) {
     return $fetch<Order>(`${BASE}/orders`, { method: 'POST', body })
+  },
+
+  // Checkout in progress, so the store can follow up if it's abandoned (needs a valid phone)
+  saveCartCheckpoint(body: CartCheckpoint) {
+    return $fetch<{ saved: boolean }>(`${BASE}/carts/checkpoint`, { method: 'POST', body })
+  },
+
+  // Recovery link from the store (WhatsApp): the saved cart with current prices
+  getSavedCart(token: string) {
+    return $fetch<SavedCart>(`${BASE}/carts/${encodeURIComponent(token)}`)
+  },
+
+  // Guests: order number + the phone used at checkout
+  trackOrder(orderNumber: string, phone: string) {
+    return $fetch<Order>(`${BASE}/orders/track`, { query: { orderNumber, phone } })
   },
 
   getOrder(id: string) {
