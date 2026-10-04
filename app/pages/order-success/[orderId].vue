@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
+import { useMockData } from '~/composables/useMockData'
 import { useRoute } from 'vue-router'
 import { useOrderConfirmation } from '~/composables/useOrderConfirmation'
 import { ArrowRight, Download } from 'lucide-vue-next'
+
+const { mockData } = useMockData() // promotional banner content
 
 const route = useRoute()
 const orderId = route.params.orderId as string
@@ -114,7 +117,7 @@ useHead({
     <!-- Recommended Products & Promotional Banner -->
     <div v-if="!loading && !error && order" class="mt-16 border-t border-gray-100 dark:border-gray-800 pt-16">
       <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-        <StorefrontPromotionalBanner />
+        <StorefrontPromotionalBanner :banner="mockData.promotionalBanner" />
       </div>
     </div>
   </div>

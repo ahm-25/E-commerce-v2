@@ -15,7 +15,7 @@ import PromotionalBanner from '~/components/storefront/PromotionalBanner.vue'
 const route = useRoute()
 const router = useRouter()
 const filtersStore = useProductFiltersStore()
-const { products, totalProducts, isLoading, fetchProducts, mockCategories } = useProducts()
+const { products, totalProducts, isLoading, fetchProducts, categories } = useProducts()
 
 // Sync URL to State on mount
 onMounted(() => {
@@ -70,7 +70,7 @@ const promoBannerData = {
         />
 
         <div class="flex flex-col lg:flex-row gap-8 mt-8">
-          <ProductFilters :categories="mockCategories" />
+          <ProductFilters :categories="categories" />
 
           <div class="flex-1 w-full">
             <ProductToolbar :total-products="totalProducts" />

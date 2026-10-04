@@ -17,7 +17,7 @@ const router = useRouter()
 const categorySlug = route.params.slug as string
 
 const filtersStore = useProductFiltersStore()
-const { products, totalProducts, isLoading, fetchProducts, getCategoryBySlug, mockCategories } = useProducts()
+const { products, totalProducts, isLoading, fetchProducts, getCategoryBySlug, categories } = useProducts()
 
 const category = computed(() => getCategoryBySlug(categorySlug))
 
@@ -87,7 +87,7 @@ const promoBannerData = {
         />
 
         <div class="flex flex-col lg:flex-row gap-8 mt-8">
-          <ProductFilters :categories="mockCategories" />
+          <ProductFilters :categories="categories" />
 
           <div class="flex-1 w-full">
             <ProductToolbar :total-products="totalProducts" />

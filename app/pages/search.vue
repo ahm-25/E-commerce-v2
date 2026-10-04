@@ -14,7 +14,7 @@ import EmptyState from '~/components/common/EmptyState.vue'
 const route = useRoute()
 const router = useRouter()
 const filtersStore = useProductFiltersStore()
-const { products, totalProducts, isLoading, fetchProducts, mockCategories } = useProducts()
+const { products, totalProducts, isLoading, fetchProducts, categories } = useProducts()
 
 const localSearchQuery = ref((route.query.q as string) || '')
 
@@ -130,7 +130,7 @@ useHead({
           
           <!-- Filters Sidebar -->
           <div v-if="filtersStore.filters.searchQuery || totalProducts > 0" class="lg:block">
-            <ProductFilters :categories="mockCategories" />
+            <ProductFilters :categories="categories" />
           </div>
 
           <!-- Main Results Area -->

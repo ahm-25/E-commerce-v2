@@ -77,6 +77,7 @@ export interface Product {
   badge?: string
   colors?: string[]
   brand?: string
+  hasVariants?: boolean // the customer must pick options on the product page
 }
 
 export interface ProductFilters {

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { mockProducts } from '~/composables/useProducts'
+import { storeApi } from '~/services/storeApi'
 import type { Product, ProductFilters } from '~/types'
 
 export interface OfferProduct extends Product {
@@ -23,36 +23,22 @@ export const useOffersStore = defineStore('offers', () => {
   const isLoadingMore = ref(false)
   const error = ref<string | null>(null)
 
-  // fake data initialization
-  const generateMockOffers = (): OfferProduct[] => {
-    return mockProducts
-      .filter(p => p.compareAtPrice && p.compareAtPrice > p.price)
-      .map((p, index) => {
-        const discountPercentage = Math.round(((p.compareAtPrice! - p.price) / p.compareAtPrice!) * 100)
-        
-        let expiresAt: string | undefined = undefined
-        // Give some products a countdown (e.g. index 0 and 3)
-        if (index === 0 || index === 3) {
-           const futureDate = new Date()
-           futureDate.setHours(futureDate.getHours() + Math.floor(Math.random() * 48) + 12) 
-           expiresAt = futureDate.toISOString()
-        }
+  // Products with a compare-at price set in the dashboard; filtered locally below
+  const allOffers = ref<OfferProduct[]>([])
 
-        return {
-          ...p,
-          discountPercentage,
-          expiresAt,
-          badge: `خصم ${discountPercentage}%` // Arabic Badge
-        }
-      })
+  const loadOffers = async () => {
+    const { items } = await storeApi.getProducts({ onSale: true, perPage: 100 })
+    allOffers.value = items.map(p => ({
+      ...p,
+      discountPercentage: Math.round(((p.compareAtPrice! - p.price) / p.compareAtPrice!) * 100)
+    }))
   }
-
-  const allOffers = ref<OfferProduct[]>(generateMockOffers())
 
   const fetchFeaturedOffers = async () => {
     try {
-      await new Promise(resolve => setTimeout(resolve, 400))
-      featuredOffers.value = allOffers.value.filter(p => p.expiresAt).slice(0, 2)
+      if (!allOffers.value.length) await loadOffers()
+      // Biggest discounts first (no expiry dates on offers yet)
+      featuredOffers.value = [...allOffers.value].sort((a, b) => (b.discountPercentage || 0) - (a.discountPercentage || 0)).slice(0, 2)
     } catch (e: any) {
       console.error(e)
     }
@@ -67,8 +53,8 @@ export const useOffersStore = defineStore('offers', () => {
     error.value = null
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 800))
-      
+      if (!isLoadMore) await loadOffers()
+
       let filtered = [...allOffers.value]
       
       const { category, minPrice, maxPrice, minDiscount, sort, searchQuery } = filters.value

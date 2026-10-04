@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useMockData } from '~/composables/useMockData'
+import { useProducts } from '~/composables/useProducts'
+import { storeApi } from '~/services/storeApi'
 import type { Product, Category } from '~/types'
 
 const RECENT_SEARCHES_KEY = 'nexora_recent_searches'
@@ -8,7 +9,7 @@ const MAX_RECENT_SEARCHES = 5
 
 export const useSearchSuggestions = () => {
   const router = useRouter()
-  const { mockProducts, mockData } = useMockData()
+  const { categories, fetchCategories } = useProducts()
 
   const query = ref('')
   const isSearchFocused = ref(false)
@@ -78,21 +79,17 @@ export const useSearchSuggestions = () => {
     hasError.value = false
 
     try {
-      // Simulate network request
-      await new Promise(resolve => setTimeout(resolve, 300))
-      
       const q = searchQuery.toLowerCase().trim()
-      
-      // Filter Categories
-      const categories = mockData.categories || []
-      suggestedCategories.value = categories
+
+      const [{ items }] = await Promise.all([
+        storeApi.getProducts({ search: q, perPage: 4 }),
+        fetchCategories()
+      ])
+
+      suggestedCategories.value = categories.value
         .filter(c => c.name.toLowerCase().includes(q))
         .slice(0, 3)
-
-      // Filter Products
-      suggestedProducts.value = mockProducts
-        .filter(p => p.name.toLowerCase().includes(q) || (p.category?.name && p.category.name.toLowerCase().includes(q)))
-        .slice(0, 4)
+      suggestedProducts.value = items
 
     } catch (e) {
       hasError.value = true

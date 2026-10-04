@@ -32,9 +32,23 @@ export const useShopStore = defineStore('shop', () => {
 
   const isInWishlist = (productId: string) => wishlistItems.value.includes(productId)
 
+  // options: optionId -> selected value. Products with variants need a full selection,
+  // so quick-add buttons (no options) open the product page instead.
   const addToCart = (product: any, quantity: number = 1, options?: Record<string, string>) => {
-    const optionsKey = options ? JSON.stringify(options) : 'default'
-    const cartItemId = `${product.id}-${optionsKey}`
+    const variant = product.variants?.find((v: any) =>
+      Object.entries(v.options).every(([optionId, value]) => options?.[optionId] === value)
+    )
+    if (product.hasVariants && !variant) {
+      navigateTo(`/products/${product.slug || product.id}`)
+      return false
+    }
+
+    const optionLabel = (type: string) => {
+      const option = product.options?.find((o: any) => o.type === type)
+      return option?.values.find((v: any) => v.id === options?.[option.id])?.label
+    }
+    const price = variant?.price ?? product.price
+    const cartItemId = `${product.id}-${variant?.id ?? 'default'}`
 
     const existingItem = cartItems.value.find(item => item.id === cartItemId)
     if (existingItem) {
@@ -44,7 +58,7 @@ export const useShopStore = defineStore('shop', () => {
         id: cartItemId,
         productId: product.id,
         name: product.name,
-        price: product.price,
+        price,
         quantity,
         image: product.images?.[0]?.url || product.image,
         options
@@ -59,14 +73,15 @@ export const useShopStore = defineStore('shop', () => {
       slug: product.slug || product.id,
       name: product.name || product.title || '',
       image: product.images?.[0]?.url || product.image || '',
-      price: product.price,
-      compareAtPrice: product.compareAtPrice,
+      price,
+      compareAtPrice: variant?.compareAtPrice ?? product.compareAtPrice,
       quantity,
-      color: options?.color,
-      size: options?.size,
-      variantId: options?.variantId,
+      color: optionLabel('color'),
+      size: optionLabel('size'),
+      variantId: variant?.id,
       isAvailable: product.isAvailable ?? true
     })
+    return true
   }
 
   const toggleMobileMenu = () => {

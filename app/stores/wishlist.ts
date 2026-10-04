@@ -1,20 +1,13 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useCartStore } from '~/stores/cart'
-import { useMockData } from '~/composables/useMockData'
+import { storeApi } from '~/services/storeApi'
 import type { WishlistItem, WishlistSortOption, Product } from '~/types'
 
 export const useWishlistStore = defineStore('wishlist', () => {
   const items = ref<WishlistItem[]>([])
   const isLoading = ref(false)
   const sortBy = ref<WishlistSortOption>('newest')
-  const { mockData } = useMockData()
-  
-  // All possible products for mock purposes (bestSellers + featuredProducts + a dummy)
-  const allMockProducts = [
-    ...mockData.bestSellers,
-    ...mockData.featuredProducts
-  ]
 
   const itemsCount = computed(() => items.value.length)
   
@@ -46,25 +39,20 @@ export const useWishlistStore = defineStore('wishlist', () => {
     return list
   })
 
+  // Refreshes the saved products from the catalog (price, stock); removed products drop out
   const loadWishlist = async () => {
+    if (!items.value.length) return
     isLoading.value = true
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 800))
-    
-    // Populate product details for items that just have IDs
-    items.value = items.value.map(item => {
-      if (!item.product) {
-        const found = allMockProducts.find(p => p.id === item.productId)
-        return {
-          ...item,
-          product: found
-        }
-      }
-      return item
-    })
-    
-    isLoading.value = false
+    try {
+      const { items: products } = await storeApi.getProducts({ ids: items.value.map(i => i.productId), perPage: 100 })
+      items.value = items.value
+        .map(item => ({ ...item, product: products.find(p => p.id === item.productId) }))
+        .filter(item => item.product)
+    } catch (e) {
+      console.error('Failed to load wishlist products', e)
+    } finally {
+      isLoading.value = false
+    }
   }
 
   const toggleItem = (product: Product) => {
@@ -96,24 +84,29 @@ export const useWishlistStore = defineStore('wishlist', () => {
     items.value = []
   }
 
+  // Adds in-stock simple products; products with options need a choice on their page
   const addAllToCart = () => {
     const cartStore = useCartStore()
     let addedCount = 0
-    
+
     items.value.forEach(item => {
-      if (item.product && item.product.stock > 0) {
+      const p = item.product
+      if (p && p.stock > 0 && !p.hasVariants) {
         cartStore.addItem({
-          id: item.product.id,
-          title: item.product.name,
-          price: item.product.price,
+          id: `${p.id}-default`,
+          productId: p.id,
+          slug: p.slug,
+          name: p.name,
+          image: p.images?.[0]?.url || '',
+          price: p.price,
+          compareAtPrice: p.compareAtPrice,
           quantity: 1,
-          image: item.product.images?.[0]?.url || '',
-          seller: { name: 'المتجر الرئيسي' }
+          isAvailable: true
         })
         addedCount++
       }
     })
-    
+
     return addedCount
   }
   

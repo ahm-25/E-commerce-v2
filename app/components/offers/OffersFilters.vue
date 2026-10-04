@@ -7,7 +7,8 @@ import { useProducts } from '~/composables/useProducts'
 
 const route = useRoute()
 const offersStore = useOffersStore()
-const { mockCategories: categories } = useProducts()
+const { categories, fetchCategories } = useProducts()
+fetchCategories()
 
 const isMobileOpen = ref(false)
 const toggleMobileFilters = () => {

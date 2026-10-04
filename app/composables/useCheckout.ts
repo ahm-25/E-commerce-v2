@@ -146,13 +146,8 @@ export function useCheckout() {
         couponCode: cartStore.coupon?.code ?? null,
         items: cartStore.items.map(i => ({
           productId: i.productId,
-          slug: i.slug,
-          name: i.name,
-          image: i.image,
-          price: i.price,
-          quantity: i.quantity,
-          color: i.color,
-          size: i.size
+          variantId: i.variantId ?? null,
+          quantity: i.quantity
         }))
       })
 

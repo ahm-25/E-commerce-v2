@@ -1,4 +1,4 @@
-import type { Coupon, ShippingMethod, PaymentMethod } from '~/types'
+import type { Coupon, ShippingMethod, PaymentMethod, Product, Category } from '~/types'
 import type { Order } from '~/types/order'
 
 // Store data managed from the dashboard (E-commerce-dashboard /api/storefront).
@@ -11,6 +11,29 @@ export interface CouponRequest {
   customerId?: string | null
 }
 
+export interface ProductQuery {
+  search?: string
+  category?: string
+  brands?: string[]
+  colors?: string[]
+  minPrice?: number
+  maxPrice?: number
+  rating?: number
+  inStock?: boolean
+  onSale?: boolean
+  ids?: string[]
+  sort?: string
+  page?: number
+  perPage?: number
+}
+
+export interface ProductPage {
+  items: Product[]
+  total: number
+  page: number
+  perPage: number
+}
+
 export interface PlaceOrderPayload {
   customerId: string | null
   customer: { name: string, phone: string, email?: string }
@@ -19,10 +42,30 @@ export interface PlaceOrderPayload {
   paymentMethodId: string
   orderNotes?: string
   couponCode?: string | null
-  items: { productId: string, slug?: string, name: string, image?: string, price: number, quantity: number, color?: string, size?: string }[]
+  // Prices, names and stock come from the catalog on the server
+  items: { productId: string, variantId?: string | null, quantity: number }[]
 }
 
+// Arrays are sent comma-separated; empty values are dropped
+const toQuery = (q: ProductQuery) => Object.fromEntries(
+  Object.entries(q)
+    .filter(([, v]) => v !== undefined && v !== null && v !== '' && !(Array.isArray(v) && v.length === 0) && v !== false)
+    .map(([k, v]) => [k, Array.isArray(v) ? v.join(',') : v === true ? '1' : v])
+)
+
 export const storeApi = {
+  getCategories() {
+    return $fetch<(Category & { productCount: number, description?: string })[]>(`${BASE}/categories`)
+  },
+
+  getProducts(query: ProductQuery = {}) {
+    return $fetch<ProductPage>(`${BASE}/products`, { query: toQuery(query) })
+  },
+
+  getProduct(slug: string) {
+    return $fetch<{ product: Product, related: Product[] }>(`${BASE}/products/${encodeURIComponent(slug)}`)
+  },
+
   validateCoupon(body: CouponRequest) {
     return $fetch<Coupon>(`${BASE}/coupons/validate`, { method: 'POST', body })
   },

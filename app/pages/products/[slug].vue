@@ -1,57 +1,65 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { storeApi } from '~/services/storeApi'
 import { useMockData } from '~/composables/useMockData'
-import type { Product } from '~/types'
 
 const route = useRoute()
-const { mockData, getProductBySlug } = useMockData()
+const { mockData } = useMockData() // promotional banner content
+const slug = route.params.slug as string
 
-// For real app, fetch based on route.params.slug
-// Using mockProduct for demo
-const product = ref<Product>(getProductBySlug(route.params.slug as string))
+// Product + related products from the dashboard catalog
+const { data } = await useAsyncData(`product:${slug}`, () => storeApi.getProduct(slug))
+if (!data.value) {
+  throw createError({ statusCode: 404, statusMessage: 'المنتج غير موجود', fatal: true })
+}
 
-// Set default selected options (first value of each option)
+const baseProduct = computed(() => data.value!.product)
+const relatedProducts = computed(() => data.value!.related)
+
+// Selected option values (optionId -> value), defaulting to the first value of each option
 const selectedOptions = ref<Record<string, string>>({})
 const quantity = ref(1)
 
 const initOptions = () => {
-  if (product.value.options) {
-    product.value.options.forEach(opt => {
-      if (opt.values && opt.values.length > 0) {
-        selectedOptions.value[opt.id] = opt.values[0].id
-      }
-    })
+  const options: Record<string, string> = {}
+  for (const opt of baseProduct.value.options ?? []) {
+    // Prefer a combination that is in stock
+    const inStock = baseProduct.value.variants?.find(v => v.stock > 0)
+    options[opt.id] = inStock?.options[opt.id] ?? opt.values[0]?.id ?? ''
   }
+  selectedOptions.value = options
 }
+initOptions()
 
-onMounted(() => {
-  initOptions()
-})
+const selectedVariant = computed(() => baseProduct.value.variants?.find(v =>
+  Object.entries(v.options).every(([optionId, value]) => selectedOptions.value[optionId] === value)
+))
 
-watch(() => product.value, () => {
-  initOptions()
-  quantity.value = 1
+// Price and stock follow the chosen variant
+const product = computed(() => ({
+  ...baseProduct.value,
+  price: selectedVariant.value?.price ?? baseProduct.value.price,
+  stock: baseProduct.value.hasVariants ? selectedVariant.value?.stock ?? 0 : baseProduct.value.stock
+}))
+
+watch(selectedVariant, () => {
+  quantity.value = Math.min(Math.max(quantity.value, 1), Math.max(product.value.stock, 1))
 })
 
 const breadcrumbs = computed(() => {
   const items = [{ name: 'الرئيسية', url: '/' }]
   if (product.value.category) {
-    items.push({ name: product.value.category.name, url: `/category/${product.value.category.slug}` })
+    items.push({ name: product.value.category.name, url: `/categories/${product.value.category.slug}` })
   }
   items.push({ name: product.value.name, url: `/products/${product.value.slug}` })
   return items
 })
 
-const relatedProducts = computed(() => {
-  return mockData.bestSellers.slice(0, 4)
-})
-
-// Update head metadata for SEO
 useHead({
-  title: `${product.value.name} | Nexora`,
+  title: () => `${product.value.name} | Nexora`,
   meta: [
-    { name: 'description', content: product.value.description }
+    { name: 'description', content: () => product.value.description }
   ]
 })
 </script>
